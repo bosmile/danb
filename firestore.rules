@@ -63,9 +63,7 @@ service cloud.firestore {
      */
     match /products/{productId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update: if isAuthenticatedAndDocExists();
-      allow delete: if isAuthenticatedAndDocExists();
+      allow write: if true;
     }
 
 
@@ -90,9 +88,7 @@ service cloud.firestore {
      */
     match /invoices/{invoiceId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update: if isAuthenticatedAndDocExists();
-      allow delete: if isAuthenticatedAndDocExists();
+      allow write: if true;
     }
 
   }
