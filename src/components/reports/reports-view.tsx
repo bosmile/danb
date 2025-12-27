@@ -20,7 +20,7 @@ interface ReportsViewProps {
 export function ReportsView({ allInvoicesData }: ReportsViewProps) {
 
   const { groupedData, categoryTotals, grandTotal } = useMemo(() => {
-    const groups: { [key: string]: { productName: string; category: string; buyer: string; quantity: number; total: number; } } = {};
+    const groups: { [key: string]: { productName: string; category: string; buyer: string; receivingPlace: string; quantity: number; total: number; } } = {};
     const categoryTotals: { [key: string]: number } = {
         BIGC: 0,
         SPLZD: 0,
@@ -35,12 +35,13 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
           categoryTotals[invoice.category] += invoice.grandTotal;
       }
       items.forEach(item => {
-        const key = `${item.productName}-${invoice.category}-${invoice.buyer}`;
+        const key = `${item.productName}-${invoice.category}-${invoice.buyer}-${invoice.receivingPlace}`;
         if (!groups[key]) {
           groups[key] = {
             productName: item.productName,
             category: invoice.category,
             buyer: invoice.buyer,
+            receivingPlace: invoice.receivingPlace,
             quantity: 0,
             total: 0,
           };
@@ -55,6 +56,8 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
         if (a.category > b.category) return 1;
         if (a.productName < b.productName) return -1;
         if (a.productName > b.productName) return 1;
+        if (a.receivingPlace < b.receivingPlace) return -1;
+        if (a.receivingPlace > b.receivingPlace) return 1;
         return 0;
     });
 
@@ -68,6 +71,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
   const exportData = groupedData.map(item => ({
       Loai: item.category,
       NguoiMua: item.buyer,
+      NoiNhan: item.receivingPlace,
       SanPham: item.productName,
       SoLuong: item.quantity,
       Tong: item.total,
@@ -84,6 +88,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 <TableRow key={index}>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.buyer}</TableCell>
+                    <TableCell>{item.receivingPlace}</TableCell>
                     <TableCell>{item.productName}</TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
@@ -91,7 +96,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 </TableRow>
             ))}
             <TableRow className="bg-muted/50 font-bold">
-                <TableCell colSpan={5} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
+                <TableCell colSpan={6} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
                 <TableCell className="text-right">
                     {new Intl.NumberFormat('vi-VN').format(categoryTotals[category])}
                 </TableCell>
@@ -119,6 +124,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 <TableRow>
                     <TableHead>Loại</TableHead>
                     <TableHead>Người mua</TableHead>
+                    <TableHead>Nơi nhận</TableHead>
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Tổng SL</TableHead>
                     <TableHead className="text-right">Tổng tiền</TableHead>
@@ -134,13 +140,13 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     </>
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">Không có dữ liệu.</TableCell>
+                        <TableCell colSpan={7} className="h-24 text-center">Không có dữ liệu.</TableCell>
                     </TableRow>
                 )}
                 </TableBody>
                  <TableFooter>
                     <TableRow className="text-lg font-bold bg-secondary hover:bg-secondary">
-                        <TableCell colSpan={5} className="text-right">TỔNG CỘNG</TableCell>
+                        <TableCell colSpan={6} className="text-right">TỔNG CỘNG</TableCell>
                         <TableCell className="text-right">{new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(grandTotal)}</TableCell>
                     </TableRow>
                 </TableFooter>

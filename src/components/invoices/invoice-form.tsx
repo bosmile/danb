@@ -53,6 +53,9 @@ const formSchema = z.object({
   buyer: z.enum(['Hà', 'Hằng'], {
     required_error: 'Vui lòng chọn người mua.',
   }),
+  receivingPlace: z.enum(['NĐ', 'HN'], {
+    required_error: 'Vui lòng chọn nơi nhận.',
+  }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
   notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, { message: 'Hóa đơn phải có ít nhất một sản phẩm.' }),
@@ -89,6 +92,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
       : {
           category: 'BIGC',
           buyer: 'Hà',
+          receivingPlace: 'NĐ',
           date: new Date(),
           notes: '',
           items: [{ productName: '', quantity: 1, price: 0, total: 0 }],
@@ -249,6 +253,27 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                     <FormMessage />
                     </FormItem>
                 )}
+                />
+                <FormField
+                    control={form.control}
+                    name="receivingPlace"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Nơi nhận</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Chọn nơi nhận hàng" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="NĐ">NĐ</SelectItem>
+                            <SelectItem value="HN">HN</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
                 />
                  <div className="md:col-span-2">
                     <FormItem>

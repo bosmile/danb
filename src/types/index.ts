@@ -2,6 +2,7 @@ import type { Timestamp } from 'firebase/firestore';
 
 export type InvoiceCategory = 'BIGC' | 'SPLZD' | 'OTHER';
 export type Buyer = 'Hà' | 'Hằng';
+export type ReceivingPlace = 'NĐ' | 'HN';
 
 export interface Product {
   id: string;
@@ -21,6 +22,7 @@ export interface Invoice {
   date: Timestamp;
   category: InvoiceCategory;
   buyer: Buyer;
+  receivingPlace: ReceivingPlace;
   notes?: string;
   items: InvoiceItem[];
   grandTotal: number;

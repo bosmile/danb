@@ -63,6 +63,10 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     header: 'Người mua',
   },
   {
+    accessorKey: 'receivingPlace',
+    header: 'Nơi nhận',
+  },
+  {
     accessorKey: 'items',
     header: 'Sản phẩm',
     cell: ({ row }) => {
