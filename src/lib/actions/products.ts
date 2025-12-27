@@ -30,12 +30,22 @@ export async function getProducts(): Promise<ProductSerializable[]> {
     return mockProducts.map(serializeProduct);
 }
 
-export async function addProduct(productData: { name: string }) {
-    // await addDoc(collection(db, 'products'), { ...productData, createdAt: Timestamp.now() });
-    console.log('Adding product:', productData.name);
+export async function addProduct(productData: { name: string }): Promise<{success: boolean, newProduct?: ProductSerializable, error?: string}> {
     await new Promise(resolve => setTimeout(resolve, 500));
-    mockProducts.push({ id: String(mockProducts.length + 1), name: productData.name, createdAt: Timestamp.now() });
-    return { success: true, newProduct: mockProducts[mockProducts.length - 1] };
+    
+    const existingProduct = mockProducts.find(p => p.name.toLowerCase() === productData.name.toLowerCase());
+    if (existingProduct) {
+        return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
+    }
+    
+    const newProduct: Product = { 
+        id: String(mockProducts.length + 1), 
+        name: productData.name, 
+        createdAt: Timestamp.now() 
+    };
+
+    mockProducts.push(newProduct);
+    return { success: true, newProduct: serializeProduct(newProduct) };
 }
 
 export async function getProductSuggestions(productName: string) {

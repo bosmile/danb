@@ -26,68 +26,67 @@ interface ProductAutocompleteProps {
 
 export function ProductAutocomplete({ value, onValueChange }: ProductAutocompleteProps) {
   const [open, setOpen] = React.useState(false);
-  const [suggestions, setSuggestions] = React.useState<string[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState(value || '');
-  const debouncedInputValue = useDebounce(inputValue, 300);
-  const { toast } = useToast();
   const [allProducts, setAllProducts] = React.useState<ProductSerializable[]>([]);
-
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+  const debouncedSearch = useDebounce(search, 300);
+  const { toast } = useToast();
+  
   React.useEffect(() => {
     async function fetchAllProducts() {
       setIsLoading(true);
-      const products = await getProducts();
-      setAllProducts(products);
-      setSuggestions(products.map(p => p.name));
-      setIsLoading(false);
+      try {
+        const products = await getProducts();
+        setAllProducts(products);
+      } catch (e) {
+        toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể tải danh sách sản phẩm.' });
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchAllProducts();
-  }, []);
-
-  React.useEffect(() => {
-    if (debouncedInputValue) {
-      const filtered = allProducts
-        .map(p => p.name)
-        .filter(name => name.toLowerCase().includes(debouncedInputValue.toLowerCase()));
-      setSuggestions(filtered);
-    } else {
-      setSuggestions(allProducts.map(p => p.name));
+  }, [toast]);
+  
+  const filteredProducts = React.useMemo(() => {
+    if (!debouncedSearch) {
+      return allProducts;
     }
-  }, [debouncedInputValue, allProducts]);
+    return allProducts.filter(p =>
+      p.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [debouncedSearch, allProducts]);
 
-  const handleSelect = (currentValue: string) => {
-    const selectedProductName = allProducts.find(p => p.name.toLowerCase() === currentValue.toLowerCase())?.name || currentValue;
-    onValueChange(selectedProductName);
-    setInputValue(selectedProductName);
+
+  const handleSelect = (productName: string) => {
+    onValueChange(productName);
+    setSearch('');
     setOpen(false);
   };
   
   const handleCreateNew = async () => {
-    if (!inputValue) return;
+    if (!search) return;
     
     setIsLoading(true);
     try {
-      const result = await addProduct({ name: inputValue });
+      const result = await addProduct({ name: search });
       if (result.success && result.newProduct) {
         const newProduct = result.newProduct;
+        setAllProducts(prev => [...prev, newProduct]);
         onValueChange(newProduct.name);
-        setInputValue(newProduct.name);
-        
-        const updatedProducts = await getProducts();
-        setAllProducts(updatedProducts);
         toast({ title: 'Thành công', description: `Đã tạo sản phẩm mới: ${newProduct.name}` });
       } else {
-        throw new Error('Failed to create product');
+        throw new Error(result.error || 'Failed to create product');
       }
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể tạo sản phẩm mới.' });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Lỗi', description: e.message || 'Không thể tạo sản phẩm mới.' });
     } finally {
       setIsLoading(false);
+      setSearch('');
       setOpen(false);
     }
   };
 
-  const showCreateNew = !isLoading && inputValue && !suggestions.some(s => s.toLowerCase() === inputValue.toLowerCase());
+  const showCreateNew = !isLoading && search && !filteredProducts.some(p => p.name.toLowerCase() === search.toLowerCase());
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -106,46 +105,46 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Tìm sản phẩm..."
-            value={inputValue}
-            onValueChange={setInputValue}
+            value={search}
+            onValueChange={setSearch}
           />
           <CommandList>
-            {isLoading && !allProducts.length ? (
+            {isLoading && filteredProducts.length === 0 ? (
               <div className="p-2 flex items-center justify-center">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
             ) : (
-                <>
-                    {suggestions.length === 0 && !showCreateNew && (
-                        <CommandEmpty>Không tìm thấy sản phẩm.</CommandEmpty>
-                    )}
-                    <CommandGroup>
-                    {suggestions.map((suggestion) => (
-                        <CommandItem
-                        key={suggestion}
-                        value={suggestion}
-                        onSelect={handleSelect}
-                        >
-                        <Check
-                            className={cn(
-                            'mr-2 h-4 w-4',
-                            value === suggestion ? 'opacity-100' : 'opacity-0'
-                            )}
-                        />
-                        {suggestion}
-                        </CommandItem>
-                    ))}
-                    {showCreateNew && (
-                        <CommandItem
-                        onSelect={handleCreateNew}
-                        value={`create_new_${inputValue}`}
-                        >
-                        <Check className={cn('mr-2 h-4 w-4', 'opacity-0')} />
-                        Tạo mới "{inputValue}"
-                        </CommandItem>
-                    )}
-                    </CommandGroup>
-                </>
+              <>
+                <CommandEmpty onSelect={handleCreateNew}>
+                  <div className="cursor-pointer p-2">Tạo mới "{search}"</div>
+                </CommandEmpty>
+                <CommandGroup>
+                  {filteredProducts.map((product) => (
+                    <CommandItem
+                      key={product.id}
+                      value={product.name}
+                      onSelect={() => handleSelect(product.name)}
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          value === product.name ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                      {product.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+                {showCreateNew && (
+                  <CommandItem
+                    onSelect={handleCreateNew}
+                    value={`create_new_${search}`}
+                  >
+                    <Check className={cn('mr-2 h-4 w-4', 'opacity-0')} />
+                    Tạo mới "{search}"
+                  </CommandItem>
+                )}
+              </>
             )}
           </CommandList>
         </Command>
