@@ -1,12 +1,3 @@
-'use client';
-
-import { Toaster } from '@/components/ui/toaster';
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <Toaster />
-    </>
-  );
-}
+// This file is no longer needed after removing authentication.
+// You can delete this file.
+null;
