@@ -67,10 +67,10 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
     <div className="w-full">
       <div className="flex items-center py-4 gap-2">
         <Input
-          placeholder="Lọc theo tên sản phẩm..."
-          value={(table.getColumn('productName')?.getFilterValue() as string) ?? ''}
+          placeholder="Lọc theo sản phẩm..."
+          value={(table.getColumn('items')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
-            table.getColumn('productName')?.setFilterValue(event.target.value)
+            table.getColumn('items')?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -92,12 +92,10 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) => column.toggleVisibility(!!value)}
                   >
-                    {column.id === 'productName' ? 'Sản phẩm' :
+                    {column.id === 'items' ? 'Sản phẩm' :
                      column.id === 'date' ? 'Ngày' :
                      column.id === 'category' ? 'Loại' :
-                     column.id === 'quantity' ? 'SL' :
-                     column.id === 'price' ? 'Đơn giá' :
-                     column.id === 'total' ? 'Tổng' :
+                     column.id === 'grandTotal' ? 'Tổng cộng' :
                      column.id === 'imageUrl' ? 'Ảnh' :
                      column.id === 'actions' ? 'Hành động' : column.id}
                   </DropdownMenuCheckboxItem>

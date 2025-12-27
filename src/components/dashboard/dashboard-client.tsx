@@ -60,8 +60,8 @@ export function DashboardClient() {
   };
   
   const stats = useMemo(() => {
-    const totalSpend = invoices.reduce((acc, inv) => acc + inv.total, 0);
-    const totalItems = invoices.reduce((acc, inv) => acc + inv.quantity, 0);
+    const totalSpend = invoices.reduce((acc, inv) => acc + inv.grandTotal, 0);
+    const totalItems = invoices.reduce((acc, inv) => acc + inv.items.reduce((itemAcc, item) => itemAcc + item.quantity, 0), 0);
     return { totalSpend, totalItems };
   }, [invoices]);
 

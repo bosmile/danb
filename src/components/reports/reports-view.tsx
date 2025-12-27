@@ -36,17 +36,19 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
     const groups: { [key: string]: GroupedProduct } = {};
 
     allInvoicesData.forEach(invoice => {
-      const key = `${invoice.productName}-${invoice.category}`;
-      if (!groups[key]) {
-        groups[key] = {
-          productName: invoice.productName,
-          category: invoice.category,
-          quantity: 0,
-          total: 0,
-        };
-      }
-      groups[key].quantity += invoice.quantity;
-      groups[key].total += invoice.total;
+      invoice.items.forEach(item => {
+        const key = `${item.productName}-${invoice.category}`;
+        if (!groups[key]) {
+          groups[key] = {
+            productName: item.productName,
+            category: invoice.category,
+            quantity: 0,
+            total: 0,
+          };
+        }
+        groups[key].quantity += item.quantity;
+        groups[key].total += item.total;
+      });
     });
 
     return Object.values(groups);

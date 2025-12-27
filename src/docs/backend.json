@@ -1,0 +1,147 @@
+{
+  "entities": {
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a product available for selection in invoices.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the product was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "createdAt"
+      ]
+    },
+    "InvoiceItem": {
+      "title": "Invoice Item",
+      "type": "object",
+      "description": "Represents a single line item within an invoice.",
+      "properties": {
+        "productName": {
+          "type": "string",
+          "description": "Name of the product in the invoice item."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product."
+        },
+        "price": {
+          "type": "number",
+          "description": "Unit price of the product."
+        },
+        "total": {
+          "type": "number",
+          "description": "Total amount for the item (calculated: quantity * price)."
+        }
+      },
+      "required": ["productName", "quantity", "price", "total"]
+    },
+    "Invoice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Invoice",
+      "type": "object",
+      "description": "Represents an invoice record, which can contain multiple items.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the invoice."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the invoice.",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the invoice (BIGC, SPLZD, OTHER)."
+        },
+        "items": {
+            "type": "array",
+            "description": "A list of items included in the invoice.",
+            "items": {
+                "$ref": "#/backend/entities/InvoiceItem"
+            }
+        },
+        "grandTotal": {
+          "type": "number",
+          "description": "The total amount for the entire invoice."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the image associated with the invoice.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the invoice was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "category",
+        "items",
+        "grandTotal",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores product information.  Includes `createdAt` for audit trails.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "Unique identifier for the product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/invoices/{invoiceId}",
+        "definition": {
+          "entityName": "Invoice",
+          "schema": {
+            "$ref": "#/backend/entities/Invoice"
+          },
+          "description": "Stores invoice records. Includes `createdAt` for audit trails.",
+          "params": [
+            {
+              "name": "invoiceId",
+              "description": "Unique identifier for the invoice."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to manage products and invoices for the InvoiceFlow application. It prioritizes authorization independence and supports the application's core features, including dashboard summaries, invoice creation, product management, and reporting. The structure is segregated into distinct collections for products and invoices, ensuring a homogeneous security posture for each.\n\nProducts are stored in a simple collection, `/products`, and invoices are stored in `/invoices`. No authorization is required besides authentication since all users can access this data. This structure facilitates straightforward read operations (QAPs) for displaying products in the autocomplete dropdown and listing invoices in the table view. The decision to store invoices at the root allows for easy querying of all invoices without complex rule logic.\n\nSpecifically, the structure achieves Authorization Independence by avoiding any hierarchical dependencies. All necessary data for displaying and managing these entities exists within each document, removing the need for `get()` calls in the security rules.\n\nQAPs are satisfied through structural segregation. List operations on `/products` and `/invoices` are inherently secure because the application logic does not require any filtering based on user roles or ownership within the rules themselves. Security rules can permit list operations based solely on authentication status, if required, without needing to inspect the content of the documents."
+  }
+}

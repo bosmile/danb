@@ -29,6 +29,7 @@ import {
 import { deleteInvoice } from '@/lib/actions/invoices';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const CategoryBadge = ({ category }: { category: InvoiceSerializable['category'] }) => {
     const variant: "default" | "secondary" | "destructive" =
@@ -58,22 +59,37 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     cell: ({ row }) => <CategoryBadge category={row.getValue('category')} />,
   },
   {
-    accessorKey: 'productName',
+    accessorKey: 'items',
     header: 'Sản phẩm',
+    cell: ({ row }) => {
+        const items = row.original.items;
+        if (items.length === 1) {
+            return <span>{items[0].productName}</span>;
+        }
+        return (
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span className="cursor-pointer underline decoration-dotted">
+                            {items.length} sản phẩm
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <ul>
+                            {items.map((item, index) => (
+                                <li key={index}>- {item.productName} (x{item.quantity})</li>
+                            ))}
+                        </ul>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    }
   },
   {
-    accessorKey: 'quantity',
-    header: 'SL',
-  },
-  {
-    accessorKey: 'price',
-    header: 'Đơn giá',
-    cell: ({ row }) => new Intl.NumberFormat('vi-VN').format(row.getValue('price')),
-  },
-  {
-    accessorKey: 'total',
-    header: 'Tổng',
-    cell: ({ row }) => new Intl.NumberFormat('vi-VN').format(row.getValue('total')),
+    accessorKey: 'grandTotal',
+    header: 'Tổng cộng',
+    cell: ({ row }) => new Intl.NumberFormat('vi-VN').format(row.getValue('grandTotal')),
   },
   {
     accessorKey: 'imageUrl',

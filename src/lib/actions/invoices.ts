@@ -13,11 +13,9 @@ import {
   orderBy,
   getDoc,
 } from 'firebase/firestore';
-import type { Invoice, InvoiceSerializable } from '@/types';
+import type { Invoice, InvoiceSerializable, InvoiceItem } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { getUnauthenticatedFirestore } from '@/firebase/config';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-
 
 async function getDb() {
   const db = getUnauthenticatedFirestore();
@@ -63,13 +61,15 @@ export async function getInvoiceById(id: string): Promise<InvoiceSerializable | 
     }
 }
 
-export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'total' | 'createdAt'>) {
+export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt'>) {
   const db = await getDb();
-  const total = invoiceData.quantity * invoiceData.price;
+
+  const grandTotal = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+  
   const newInvoice = {
     ...invoiceData,
     date: Timestamp.fromDate(invoiceData.date as any),
-    total,
+    grandTotal: grandTotal,
     createdAt: Timestamp.now(),
     imageUrl: invoiceData.imageUrl || 'https://picsum.photos/seed/placeholder/400/600',
   };
@@ -81,21 +81,22 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'total' | 'cr
   return { success: true };
 }
 
-export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoice, 'id' | 'total' | 'createdAt'>>) {
+export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoice, 'id' | 'createdAt'>>) {
   const db = await getDb();
   const invoiceRef = doc(db, 'invoices', id);
 
-  const docSnap = await getDoc(invoiceRef);
-  
-  if (!docSnap.exists()) {
-      return { success: false, error: 'Invoice not found' };
+  const grandTotal = invoiceData.items?.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+
+  const updateData: any = {
+      ...invoiceData,
+      date: Timestamp.fromDate(invoiceData.date as any),
+  };
+
+  if (grandTotal !== undefined) {
+      updateData.grandTotal = grandTotal;
   }
 
-  const originalInvoice = docSnap.data();
-  const updatedData = { ...originalInvoice, ...invoiceData };
-  const total = updatedData.quantity * updatedData.price;
-  
-  await updateDoc(invoiceRef, { ...invoiceData, date: Timestamp.fromDate(invoiceData.date as any), total });
+  await updateDoc(invoiceRef, updateData);
 
   revalidatePath('/');
   revalidatePath('/reports');

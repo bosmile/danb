@@ -8,14 +8,19 @@ export interface Product {
   createdAt: Timestamp;
 }
 
-export interface Invoice {
-  id: string;
-  date: Timestamp;
-  category: InvoiceCategory;
+export interface InvoiceItem {
   productName: string;
   quantity: number;
   price: number;
   total: number;
+}
+
+export interface Invoice {
+  id: string;
+  date: Timestamp;
+  category: InvoiceCategory;
+  items: InvoiceItem[];
+  grandTotal: number;
   imageUrl?: string;
   createdAt: Timestamp;
 }
