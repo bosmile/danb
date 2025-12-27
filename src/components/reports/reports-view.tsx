@@ -36,7 +36,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
     const groups: { [key: string]: GroupedProduct } = {};
 
     allInvoicesData.forEach(invoice => {
-      invoice.items.forEach(item => {
+      (invoice.items || []).forEach(item => {
         const key = `${item.productName}-${invoice.category}`;
         if (!groups[key]) {
           groups[key] = {
