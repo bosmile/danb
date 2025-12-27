@@ -1,4 +1,5 @@
 import type { InvoiceSerializable } from "@/types";
+import { useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -8,7 +9,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { format } from 'date-fns';
 import { ExportButtons } from "./export-buttons";
 import { Badge } from "../ui/badge";
 
@@ -24,14 +24,39 @@ interface ReportsViewProps {
     allInvoicesData: InvoiceSerializable[];
 }
 
+interface GroupedProduct {
+    productName: string;
+    category: InvoiceSerializable['category'];
+    quantity: number;
+    total: number;
+}
+
 export function ReportsView({ allInvoicesData }: ReportsViewProps) {
-  const exportData = allInvoicesData.map(inv => ({
-    Ngay: format(new Date(inv.date), 'dd/MM/yyyy'),
-    Loai: inv.category,
-    SanPham: inv.productName,
-    SoLuong: inv.quantity,
-    DonGia: inv.price,
-    Tong: inv.total,
+  const groupedData = useMemo(() => {
+    const groups: { [key: string]: GroupedProduct } = {};
+
+    allInvoicesData.forEach(invoice => {
+      const key = `${invoice.productName}-${invoice.category}`;
+      if (!groups[key]) {
+        groups[key] = {
+          productName: invoice.productName,
+          category: invoice.category,
+          quantity: 0,
+          total: 0,
+        };
+      }
+      groups[key].quantity += invoice.quantity;
+      groups[key].total += invoice.total;
+    });
+
+    return Object.values(groups);
+  }, [allInvoicesData]);
+
+  const exportData = groupedData.map(item => ({
+    Loai: item.category,
+    SanPham: item.productName,
+    SoLuong: item.quantity,
+    Tong: item.total,
   }));
 
   return (
@@ -40,10 +65,10 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
         <CardHeader>
             <div className="flex items-center justify-between">
                 <div>
-                    <CardTitle>Báo cáo chi tiết hóa đơn</CardTitle>
-                    <CardDescription>Danh sách tất cả các hóa đơn theo khoảng thời gian đã chọn.</CardDescription>
+                    <CardTitle>Báo cáo tổng hợp</CardTitle>
+                    <CardDescription>Báo cáo tổng hợp số lượng và chi tiêu theo từng sản phẩm.</CardDescription>
                 </div>
-                <ExportButtons data={exportData} filename="BaoCao_TongHop" sheetName="TongHop" />
+                <ExportButtons data={exportData} filename="BaoCao_TongHop_TheoSanPham" sheetName="TongHop" />
             </div>
         </CardHeader>
         <CardContent>
@@ -51,27 +76,23 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
             <Table>
                 <TableHeader>
                 <TableRow>
-                    <TableHead>Ngày</TableHead>
                     <TableHead>Loại</TableHead>
                     <TableHead>Sản phẩm</TableHead>
-                    <TableHead className="text-right">SL</TableHead>
-                    <TableHead className="text-right">Đơn giá</TableHead>
-                    <TableHead className="text-right">Tổng</TableHead>
+                    <TableHead className="text-right">Tổng số lượng</TableHead>
+                    <TableHead className="text-right">Tổng chi tiêu</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {allInvoicesData.length > 0 ? allInvoicesData.map(inv => (
-                    <TableRow key={inv.id}>
-                      <TableCell>{format(new Date(inv.date), 'dd/MM/yyyy')}</TableCell>
-                      <TableCell><CategoryBadge category={inv.category} /></TableCell>
-                      <TableCell>{inv.productName}</TableCell>
-                      <TableCell className="text-right">{inv.quantity}</TableCell>
-                      <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(inv.price)}</TableCell>
-                      <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(inv.total)}</TableCell>
+                {groupedData.length > 0 ? groupedData.map(item => (
+                    <TableRow key={`${item.productName}-${item.category}`}>
+                      <TableCell><CategoryBadge category={item.category} /></TableCell>
+                      <TableCell>{item.productName}</TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
                     </TableRow>
                 )) : (
                     <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">Không có dữ liệu.</TableCell>
+                        <TableCell colSpan={4} className="h-24 text-center">Không có dữ liệu.</TableCell>
                     </TableRow>
                 )}
                 </TableBody>
