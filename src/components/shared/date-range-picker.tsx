@@ -45,7 +45,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
     }
   };
 
-  const numberOfMonths = isMobile ? 1 : 2;
+  const numberOfMonths = isMobile || allowManualInput ? 1 : 2;
 
   if (allowManualInput) {
     return (
@@ -129,7 +129,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
             defaultMonth={date?.from}
             selected={date}
             onSelect={setDate}
-            numberOfMonths={1}
+            numberOfMonths={numberOfMonths}
             locale={vi}
           />
         </PopoverContent>
