@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { ExportButtons } from "./export-buttons";
-import { format } from "date-fns";
 
 interface ReportsViewProps {
     allInvoicesData: InvoiceSerializable[];
@@ -20,7 +19,14 @@ interface ReportsViewProps {
 export function ReportsView({ allInvoicesData }: ReportsViewProps) {
 
   const { groupedData, categoryTotals, grandTotal } = useMemo(() => {
-    const groups: { [key: string]: { productName: string; category: string; buyer: string; receivingPlace: string; quantity: number; total: number; } } = {};
+    const groups: { [key: string]: { 
+        productName: string; 
+        category: string; 
+        buyer: string; 
+        quantity: number; 
+        total: number;
+        quantityByPlace: { [place: string]: number };
+     } } = {};
     const categoryTotals: { [key: string]: number } = {
         BIGC: 0,
         SPLZD: 0,
@@ -35,19 +41,25 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
           categoryTotals[invoice.category] += invoice.grandTotal;
       }
       items.forEach(item => {
-        const key = `${item.productName}-${invoice.category}-${invoice.buyer}-${invoice.receivingPlace}`;
+        const key = `${item.productName}-${invoice.category}-${invoice.buyer}`;
         if (!groups[key]) {
           groups[key] = {
             productName: item.productName,
             category: invoice.category,
             buyer: invoice.buyer,
-            receivingPlace: invoice.receivingPlace,
             quantity: 0,
             total: 0,
+            quantityByPlace: {},
           };
         }
         groups[key].quantity += item.quantity;
         groups[key].total += item.total;
+        
+        const place = invoice.receivingPlace;
+        if (!groups[key].quantityByPlace[place]) {
+            groups[key].quantityByPlace[place] = 0;
+        }
+        groups[key].quantityByPlace[place] += item.quantity;
       });
     });
 
@@ -56,8 +68,6 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
         if (a.category > b.category) return 1;
         if (a.productName < b.productName) return -1;
         if (a.productName > b.productName) return 1;
-        if (a.receivingPlace < b.receivingPlace) return -1;
-        if (a.receivingPlace > b.receivingPlace) return 1;
         return 0;
     });
 
@@ -71,9 +81,9 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
   const exportData = groupedData.map(item => ({
       Loai: item.category,
       NguoiMua: item.buyer,
-      NoiNhan: item.receivingPlace,
       SanPham: item.productName,
       SoLuong: item.quantity,
+      ChiTietSL: Object.entries(item.quantityByPlace).map(([place, qty]) => `${place}: ${qty}`).join(', '),
       Tong: item.total,
       DonGiaTB: item.quantity > 0 ? item.total / item.quantity : 0
   }));
@@ -88,9 +98,9 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 <TableRow key={index}>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.buyer}</TableCell>
-                    <TableCell>{item.receivingPlace}</TableCell>
                     <TableCell>{item.productName}</TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
+                    <TableCell>{Object.entries(item.quantityByPlace).map(([place, qty]) => `${place}: ${qty}`).join(', ')}</TableCell>
                     <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
                     <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.quantity > 0 ? item.total / item.quantity : 0)}</TableCell>
                 </TableRow>
@@ -124,9 +134,9 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 <TableRow>
                     <TableHead>Loại</TableHead>
                     <TableHead>Người mua</TableHead>
-                    <TableHead>Nơi nhận</TableHead>
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Tổng SL</TableHead>
+                    <TableHead>Chi tiết SL</TableHead>
                     <TableHead className="text-right">Tổng tiền</TableHead>
                     <TableHead className="text-right">Đơn giá TB</TableHead>
                 </TableRow>
