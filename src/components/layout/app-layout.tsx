@@ -1,5 +1,4 @@
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarTrigger } from '@/components/ui/sidebar';
-import { UserNav } from '@/components/layout/user-nav';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { Package } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -29,7 +28,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1">
             {/* Can add a global search here in the future */}
           </div>
-          <UserNav />
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </SidebarInset>
