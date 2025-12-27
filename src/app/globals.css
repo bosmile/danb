@@ -106,5 +106,20 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    position: relative;
+  }
+  
+  body::after {
+    content: 'DỰ ÁN NUÔI BƠ';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 5vw;
+    font-weight: bold;
+    color: hsl(var(--foreground) / 0.05);
+    z-index: -1;
+    pointer-events: none;
+    white-space: nowrap;
   }
 }
