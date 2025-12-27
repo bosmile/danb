@@ -1,0 +1,152 @@
+'use client';
+
+import { ColumnDef } from '@tanstack/react-table';
+import type { InvoiceSerializable } from '@/types';
+import { format } from 'date-fns';
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
+import { InvoiceFormModal } from './invoice-form-modal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { deleteInvoice } from '@/lib/actions/invoices';
+import { useToast } from '@/hooks/use-toast';
+
+const CategoryBadge = ({ category }: { category: InvoiceSerializable['category'] }) => {
+    const variant: "default" | "secondary" | "destructive" =
+        category === 'BIGC' ? 'default' : category === 'SPLZD' ? 'secondary' : 'destructive';
+    const text = category === 'OTHER' ? 'Khác' : category;
+
+    return <Badge variant={variant}>{text}</Badge>
+};
+
+export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceSerializable>[] => [
+  {
+    accessorKey: 'date',
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Ngày
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => format(new Date(row.getValue('date')), 'dd/MM/yyyy'),
+  },
+  {
+    accessorKey: 'category',
+    header: 'Loại',
+    cell: ({ row }) => <CategoryBadge category={row.getValue('category')} />,
+  },
+  {
+    accessorKey: 'productName',
+    header: 'Sản phẩm',
+  },
+  {
+    accessorKey: 'quantity',
+    header: 'SL',
+  },
+  {
+    accessorKey: 'price',
+    header: 'Đơn giá',
+    cell: ({ row }) => new Intl.NumberFormat('vi-VN').format(row.getValue('price')),
+  },
+  {
+    accessorKey: 'total',
+    header: 'Tổng',
+    cell: ({ row }) => new Intl.NumberFormat('vi-VN').format(row.getValue('total')),
+  },
+  {
+    accessorKey: 'imageUrl',
+    header: 'Ảnh',
+    cell: ({ row }) => {
+      const imageUrl = row.getValue('imageUrl') as string | undefined;
+      return imageUrl ? (
+        <Image
+          src={imageUrl}
+          alt="Thumbnail"
+          width={40}
+          height={40}
+          className="rounded-md object-cover"
+          data-ai-hint="receipt grocery"
+        />
+      ) : null;
+    },
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      const invoice = row.original;
+      const { toast } = useToast();
+
+      const handleDelete = async () => {
+        try {
+            await deleteInvoice(invoice.id);
+            toast({ title: "Thành công", description: "Đã xóa hóa đơn." });
+            onDataChanged();
+        } catch (error) {
+            toast({ variant: 'destructive', title: "Lỗi", description: "Không thể xóa hóa đơn." });
+        }
+      }
+
+      return (
+        <AlertDialog>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Mở menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+              <InvoiceFormModal invoiceToEdit={invoice} onInvoiceAdded={onDataChanged}>
+                <button className="w-full">
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Sửa</DropdownMenuItem>
+                </button>
+              </InvoiceFormModal>
+              <DropdownMenuSeparator />
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                  Xóa
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      Hành động này không thể hoàn tác. Hóa đơn sẽ bị xóa vĩnh viễn.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Hủy</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Xóa</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    },
+  },
+];

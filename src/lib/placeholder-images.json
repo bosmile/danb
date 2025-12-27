@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "invoice-1",
+      "description": "A receipt for groceries",
+      "imageUrl": "https://images.unsplash.com/photo-1683840567064-e430df9f5ed6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWNlaXB0JTIwZ3JvY2VyeXxlbnwwfHx8fDE3NjY4NDAyNzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "receipt grocery"
+    },
+    {
+      "id": "invoice-2",
+      "description": "A receipt for electronics",
+      "imageUrl": "https://images.unsplash.com/photo-1604088308691-59fb736f0b2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxyZWNlaXB0JTIwZWxlY3Ryb25pY3N8ZW58MHx8fHwxNzY2ODQwMjc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "receipt electronics"
+    },
+    {
+      "id": "invoice-3",
+      "description": "A receipt for office supplies",
+      "imageUrl": "https://images.unsplash.com/photo-1721219178064-7758ebc5580d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZWNlaXB0JTIwc3VwcGxpZXN8ZW58MHx8fHwxNzY2ODQwMjc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "receipt supplies"
+    }
+  ]
 }
