@@ -82,7 +82,7 @@ export function DashboardClient() {
       
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <StatsCards totalSpend={stats.totalSpend} totalItems={stats.totalItems} />
-        <DateRangePicker date={date} setDate={onDateChange} className="w-full md:w-auto" />
+        <DateRangePicker date={date} setDate={onDateChange} className="w-full md:w-auto" allowManualInput={true} />
       </div>
 
       {loading ? (
