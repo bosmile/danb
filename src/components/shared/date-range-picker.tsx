@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   date: DateRange | undefined;
@@ -19,6 +20,7 @@ interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function DateRangePicker({ className, date, setDate, allowManualInput = false }: DateRangePickerProps) {
+  const isMobile = useIsMobile();
   const [fromValue, setFromValue] = React.useState<string>(date?.from ? format(date.from, 'dd/MM/yyyy') : '');
   const [toValue, setToValue] = React.useState<string>(date?.to ? format(date.to, 'dd/MM/yyyy') : '');
 
@@ -43,6 +45,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
     }
   };
 
+  const numberOfMonths = isMobile ? 1 : 2;
 
   if (allowManualInput) {
     return (
@@ -79,7 +82,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
               defaultMonth={date?.from}
               selected={date}
               onSelect={setDate}
-              numberOfMonths={2}
+              numberOfMonths={numberOfMonths}
               locale={vi}
             />
              <div className="p-2 grid grid-cols-2 gap-2">
