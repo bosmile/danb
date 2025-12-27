@@ -20,7 +20,8 @@ import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlo
 
 
 async function getDb() {
-  return getUnauthenticatedFirestore();
+  const db = getUnauthenticatedFirestore();
+  return db;
 }
 
 function serializeInvoice(invoice: Invoice): InvoiceSerializable {
@@ -73,7 +74,7 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'total' | 'cr
     imageUrl: invoiceData.imageUrl || 'https://picsum.photos/seed/placeholder/400/600',
   };
 
-  addDocumentNonBlocking(collection(db, 'invoices'), newInvoice);
+  await addDoc(collection(db, 'invoices'), newInvoice);
   
   revalidatePath('/');
   revalidatePath('/reports');
@@ -94,7 +95,7 @@ export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoic
   const updatedData = { ...originalInvoice, ...invoiceData };
   const total = updatedData.quantity * updatedData.price;
   
-  updateDocumentNonBlocking(invoiceRef, { ...invoiceData, date: Timestamp.fromDate(invoiceData.date as any), total });
+  await updateDoc(invoiceRef, { ...invoiceData, date: Timestamp.fromDate(invoiceData.date as any), total });
 
   revalidatePath('/');
   revalidatePath('/reports');
@@ -105,7 +106,7 @@ export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoic
 export async function deleteInvoice(id: string) {
   const db = await getDb();
   const invoiceRef = doc(db, 'invoices', id);
-  deleteDocumentNonBlocking(invoiceRef);
+  await deleteDoc(invoiceRef);
 
   revalidatePath('/');
   revalidatePath('/reports');

@@ -106,11 +106,11 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
         await addInvoice(invoiceData as Omit<Invoice, 'id' | 'total' | 'createdAt'>);
       }
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Lỗi',
-        description: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
+        description: error.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.',
       });
     } finally {
       setLoading(false);
@@ -183,21 +183,21 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
           )}
         />
         <div className="sm:col-span-2">
-            <Controller
-                control={form.control}
-                name="productName"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Tên sản phẩm</FormLabel>
-                    <FormControl>
-                        <ProductAutocomplete
-                            value={field.value}
-                            onValueChange={field.onChange}
-                        />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
+           <FormField
+              control={form.control}
+              name="productName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tên sản phẩm</FormLabel>
+                  <FormControl>
+                    <ProductAutocomplete 
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
         </div>
         <FormField
