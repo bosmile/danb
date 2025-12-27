@@ -1,6 +1,6 @@
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarTrigger } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
-import { Package } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '../ui/button';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -10,9 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8">
-                <Package className="h-5 w-5" />
-              </Button>
+              <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-full" />
               <h1 className="text-xl font-bold">DỰ ÁN NUÔI BƠ</h1>
             </div>
             <SidebarTrigger className="md:hidden" />
