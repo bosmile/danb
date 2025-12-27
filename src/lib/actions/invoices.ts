@@ -2,18 +2,26 @@
 
 import {
   Timestamp,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  orderBy,
+  getDoc,
 } from 'firebase/firestore';
 import type { Invoice, InvoiceSerializable } from '@/types';
 import { revalidatePath } from 'next/cache';
+import { getUnauthenticatedFirestore } from '@/firebase/config';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-// MOCK DATA for demonstration without real Firebase connection
-let mockInvoices: Invoice[] = [
-  { id: '1', date: Timestamp.fromDate(new Date('2024-05-10')), category: 'BIGC', productName: 'Sữa tươi Vinamilk', quantity: 2, price: 30000, total: 60000, imageUrl: 'https://picsum.photos/seed/101/400/600', createdAt: Timestamp.now() },
-  { id: '2', date: Timestamp.fromDate(new Date('2024-05-12')), category: 'SPLZD', productName: 'Tai nghe Sony', quantity: 1, price: 1200000, total: 1200000, imageUrl: 'https://picsum.photos/seed/102/400/600', createdAt: Timestamp.now() },
-  { id: '3', date: Timestamp.fromDate(new Date('2024-05-15')), category: 'OTHER', productName: 'Giấy A4', quantity: 5, price: 65000, total: 325000, imageUrl: 'https://picsum.photos/seed/103/400/600', createdAt: Timestamp.now() },
-  { id: '4', date: Timestamp.fromDate(new Date('2024-06-02')), category: 'BIGC', productName: 'Bánh mì', quantity: 3, price: 5000, total: 15000, createdAt: Timestamp.now() },
-  { id: '5', date: Timestamp.fromDate(new Date('2024-06-05')), category: 'SPLZD', productName: 'Chuột Logitech', quantity: 1, price: 750000, total: 750000, imageUrl: 'https://picsum.photos/seed/104/400/600', createdAt: Timestamp.now() },
-];
+
+async function getDb() {
+  return getUnauthenticatedFirestore();
+}
 
 function serializeInvoice(invoice: Invoice): InvoiceSerializable {
     return {
@@ -23,64 +31,83 @@ function serializeInvoice(invoice: Invoice): InvoiceSerializable {
     };
 }
 
-
 export async function getInvoices(startDate?: Date, endDate?: Date): Promise<InvoiceSerializable[]> {
-  await new Promise(resolve => setTimeout(resolve, 200));
+  const db = await getDb();
+  const invoicesCol = collection(db, 'invoices');
   
-  let filteredInvoices = [...mockInvoices].sort((a, b) => b.date.toMillis() - a.date.toMillis());
-  
+  const queries = [orderBy('date', 'desc')];
   if (startDate) {
-    const startTimestamp = Timestamp.fromDate(startDate).toMillis();
-    filteredInvoices = filteredInvoices.filter(inv => inv.date.toMillis() >= startTimestamp);
+    queries.push(where('date', '>=', Timestamp.fromDate(startDate)));
   }
   if (endDate) {
-    const endTimestamp = Timestamp.fromDate(endDate).toMillis();
-    filteredInvoices = filteredInvoices.filter(inv => inv.date.toMillis() <= endTimestamp);
+    queries.push(where('date', '<=', Timestamp.fromDate(endDate)));
   }
 
-  return filteredInvoices.map(serializeInvoice);
+  const q = query(invoicesCol, ...queries);
+  const invoiceSnapshot = await getDocs(q);
+  const invoiceList = invoiceSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Invoice));
+  
+  return invoiceList.map(serializeInvoice);
+}
+
+export async function getInvoiceById(id: string): Promise<InvoiceSerializable | null> {
+    const db = await getDb();
+    const invoiceRef = doc(db, 'invoices', id);
+    const docSnap = await getDoc(invoiceRef);
+
+    if (docSnap.exists()) {
+        return serializeInvoice({ id: docSnap.id, ...docSnap.data() } as Invoice);
+    } else {
+        return null;
+    }
 }
 
 export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'total' | 'createdAt'>) {
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const db = await getDb();
   const total = invoiceData.quantity * invoiceData.price;
-  const newInvoice: Invoice = {
+  const newInvoice = {
     ...invoiceData,
-    id: String(Date.now()),
-    total,
     date: Timestamp.fromDate(invoiceData.date as any),
+    total,
     createdAt: Timestamp.now(),
+    imageUrl: invoiceData.imageUrl || 'https://picsum.photos/seed/placeholder/400/600',
   };
-  mockInvoices.unshift(newInvoice);
+
+  addDocumentNonBlocking(collection(db, 'invoices'), newInvoice);
+  
   revalidatePath('/');
   revalidatePath('/reports');
   return { success: true };
 }
 
 export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoice, 'id' | 'total' | 'createdAt'>>) {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  const index = mockInvoices.findIndex(inv => inv.id === id);
-  if (index !== -1) {
-    const originalInvoice = mockInvoices[index];
-    const updatedData = { ...originalInvoice, ...invoiceData };
-    const total = updatedData.quantity * updatedData.price;
-    mockInvoices[index] = { ...updatedData, total, date: Timestamp.fromDate(updatedData.date as any) };
-    revalidatePath('/');
-    revalidatePath('/reports');
-    revalidatePath(`/invoices/${id}/edit`);
-    return { success: true };
+  const db = await getDb();
+  const invoiceRef = doc(db, 'invoices', id);
+
+  const docSnap = await getDoc(invoiceRef);
+  
+  if (!docSnap.exists()) {
+      return { success: false, error: 'Invoice not found' };
   }
-  return { success: false, error: 'Invoice not found' };
+
+  const originalInvoice = docSnap.data();
+  const updatedData = { ...originalInvoice, ...invoiceData };
+  const total = updatedData.quantity * updatedData.price;
+  
+  updateDocumentNonBlocking(invoiceRef, { ...invoiceData, date: Timestamp.fromDate(invoiceData.date as any), total });
+
+  revalidatePath('/');
+  revalidatePath('/reports');
+  revalidatePath(`/invoices/${id}/edit`);
+  return { success: true };
 }
 
 export async function deleteInvoice(id: string) {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  const initialLength = mockInvoices.length;
-  mockInvoices = mockInvoices.filter(inv => inv.id !== id);
-  if (mockInvoices.length < initialLength) {
-    revalidatePath('/');
-    revalidatePath('/reports');
-    return { success: true };
-  }
-  return { success: false, error: 'Invoice not found' };
+  const db = await getDb();
+  const invoiceRef = doc(db, 'invoices', id);
+  deleteDocumentNonBlocking(invoiceRef);
+
+  revalidatePath('/');
+  revalidatePath('/reports');
+  return { success: true };
 }

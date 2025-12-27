@@ -15,21 +15,23 @@ import { Button } from '../ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 
-export function DashboardClient({ initialInvoices }: { initialInvoices: InvoiceSerializable[] }) {
-  const [invoices, setInvoices] = useState(initialInvoices);
+export function DashboardClient() {
+  const [invoices, setInvoices] = useState<InvoiceSerializable[]>([]);
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const refreshInvoices = async (newDate?: DateRange) => {
     const targetDate = newDate || date;
     setLoading(true);
     try {
-      const freshInvoices = await getInvoices(targetDate?.from, targetDate?.to);
-      setInvoices(freshInvoices);
+      if (targetDate?.from && targetDate?.to) {
+        const freshInvoices = await getInvoices(targetDate.from, targetDate.to);
+        setInvoices(freshInvoices);
+      }
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -45,7 +47,8 @@ export function DashboardClient({ initialInvoices }: { initialInvoices: InvoiceS
     if (date?.from && date?.to) {
       refreshInvoices(date);
     }
-  }, [date, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]);
 
 
   const onDateChange = (newDate: DateRange | undefined) => {

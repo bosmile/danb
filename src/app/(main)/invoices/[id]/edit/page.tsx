@@ -1,14 +1,37 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { InvoiceFormWrapper } from '@/components/invoices/invoice-form-wrapper';
 import { PageHeader } from '@/components/shared/page-header';
-import { getInvoices } from '@/lib/actions/invoices'; // We'll use this to fetch a single invoice
+import { getInvoiceById } from '@/lib/actions/invoices';
+import { InvoiceSerializable } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
-export const revalidate = 0;
+export default function EditInvoicePage({ params }: { params: { id: string } }) {
+  const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceSerializable | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    async function fetchInvoice() {
+      setLoading(true);
+      try {
+        const invoice = await getInvoiceById(params.id);
+        if (invoice) {
+          setInvoiceToEdit(invoice);
+        } else {
+          toast({ variant: 'destructive', title: 'Lỗi', description: 'Không tìm thấy hóa đơn.' });
+        }
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể tải dữ liệu hóa đơn.' });
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchInvoice();
 
-export default async function EditInvoicePage({ params }: { params: { id: string } }) {
-  // In a real app, you'd have a getInvoiceById function.
-  // For now, we'll fetch all and find the one.
-  const allInvoices = await getInvoices();
-  const invoiceToEdit = allInvoices.find(inv => inv.id === params.id);
+  }, [params.id, toast]);
 
   return (
     <div className="space-y-6">
@@ -16,7 +39,7 @@ export default async function EditInvoicePage({ params }: { params: { id: string
         title="Sửa hóa đơn"
         description="Cập nhật thông tin chi tiết cho hóa đơn."
       />
-      <InvoiceFormWrapper invoiceToEdit={invoiceToEdit} />
+      <InvoiceFormWrapper invoiceToEdit={invoiceToEdit} loading={loading} />
     </div>
   );
 }

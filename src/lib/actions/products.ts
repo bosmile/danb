@@ -1,16 +1,16 @@
 'use server';
 
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, getDoc } from 'firebase/firestore';
 import type { Product, ProductSerializable } from '@/types';
 import { revalidatePath } from 'next/cache';
+import { getUnauthenticatedFirestore } from '@/firebase/config';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-let mockProducts: Product[] = [
-    { id: '1', name: 'Sữa tươi Vinamilk', createdAt: Timestamp.now() },
-    { id: '2', name: 'Tai nghe Sony', createdAt: Timestamp.now() },
-    { id: '3', name: 'Giấy A4', createdAt: Timestamp.now() },
-    { id: '4', name: 'Bánh mì', createdAt: Timestamp.now() },
-    { id: '5', name: 'Chuột Logitech', createdAt: Timestamp.now() },
-];
+
+async function getDb() {
+  return getUnauthenticatedFirestore();
+}
+
 
 function serializeProduct(product: Product): ProductSerializable {
     return {
@@ -21,53 +21,72 @@ function serializeProduct(product: Product): ProductSerializable {
 
 
 export async function getProducts(): Promise<ProductSerializable[]> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return [...mockProducts].sort((a,b) => a.name.localeCompare(b.name)).map(serializeProduct);
+    const db = await getDb();
+    const productsCol = collection(db, 'products');
+    const q = query(productsCol, orderBy('name'));
+    const productSnapshot = await getDocs(q);
+    const productList = productSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Product));
+    return productList.map(serializeProduct);
 }
 
 export async function addProduct(productData: { name: string }): Promise<{success: boolean, newProduct?: ProductSerializable, error?: string}> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const db = await getDb();
+    const productsCol = collection(db, 'products');
     
-    const existingProduct = mockProducts.find(p => p.name.toLowerCase() === productData.name.toLowerCase());
-    if (existingProduct) {
-        return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
+    const q = query(productsCol, where('name', '==', productData.name));
+    const existingSnapshot = await getDocs(q);
+    if (!existingSnapshot.empty) {
+         return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
     }
     
-    const newProduct: Product = { 
-        id: String(Date.now()), 
+    const newProductData = { 
         name: productData.name, 
         createdAt: Timestamp.now() 
     };
 
-    mockProducts.push(newProduct);
+    const docRef = await addDoc(productsCol, newProductData);
+    
+    const newProduct: Product = {
+        id: docRef.id,
+        ...newProductData
+    }
+
     revalidatePath('/products');
     revalidatePath('/invoices/add');
+    revalidatePath('/invoices/[id]/edit', 'page');
     return { success: true, newProduct: serializeProduct(newProduct) };
 }
 
 export async function updateProduct(id: string, productData: { name: string }): Promise<{success: boolean, error?: string}> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const index = mockProducts.findIndex(p => p.id === id);
-    if (index !== -1) {
-        // Check for name conflict before updating
-        const existingProduct = mockProducts.find(p => p.name.toLowerCase() === productData.name.toLowerCase() && p.id !== id);
-        if (existingProduct) {
-            return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
-        }
-        mockProducts[index].name = productData.name;
-        revalidatePath('/products');
-        return { success: true };
+    const db = await getDb();
+    const productRef = doc(db, 'products', id);
+
+    const q = query(collection(db, 'products'), where('name', '==', productData.name));
+    const existingSnapshot = await getDocs(q);
+    const conflict = existingSnapshot.docs.find(doc => doc.id !== id);
+    if (conflict) {
+        return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
     }
-    return { success: false, error: 'Product not found' };
+    
+    await updateDoc(productRef, { name: productData.name });
+
+    revalidatePath('/products');
+    return { success: true };
 }
 
 export async function deleteProduct(id: string): Promise<{success: boolean, error?: string}> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const initialLength = mockProducts.length;
-    mockProducts = mockProducts.filter(p => p.id !== id);
-    if (mockProducts.length < initialLength) {
-        revalidatePath('/products');
-        return { success: true };
+    const db = await getDb();
+    
+    // Check if product is used in any invoices
+    const invoicesQuery = query(collection(db, 'invoices'), where('productName', '==', (await getDoc(doc(db, 'products', id))).data()?.name));
+    const invoicesSnapshot = await getDocs(invoicesQuery);
+    if (!invoicesSnapshot.empty) {
+        return { success: false, error: 'Không thể xóa sản phẩm đang được sử dụng trong hóa đơn.' };
     }
-    return { success: false, error: 'Product not found' };
+
+    const productRef = doc(db, 'products', id);
+    deleteDocumentNonBlocking(productRef);
+
+    revalidatePath('/products');
+    return { success: true };
 }

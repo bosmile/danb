@@ -10,13 +10,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import { ReportsView } from './reports-view';
 
-export function ReportsClient({ initialInvoices }: { initialInvoices: InvoiceSerializable[] }) {
-  const [invoices, setInvoices] = useState(initialInvoices);
+export function ReportsClient() {
+  const [invoices, setInvoices] = useState<InvoiceSerializable[]>([]);
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
   useEffect(() => {

@@ -1,3 +1,6 @@
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+
 export const firebaseConfig = {
   "projectId": "studio-6183366381-f15fd",
   "appId": "1:866741763698:web:f8edddf0aa62bde6e2cceb",
@@ -6,3 +9,14 @@ export const firebaseConfig = {
   "measurementId": "",
   "messagingSenderId": "866741763698"
 };
+
+function initialize() {
+    if (getApps().length) {
+        return getApp();
+    }
+    return initializeApp(firebaseConfig);
+}
+
+export function getUnauthenticatedFirestore() {
+    return getFirestore(initialize());
+}

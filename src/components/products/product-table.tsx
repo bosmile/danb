@@ -25,32 +25,14 @@ import { Input } from '@/components/ui/input';
 import { ProductSerializable } from '@/types';
 import { getProductColumns } from './product-columns';
 import { ProductFormModal } from './product-form-modal';
-import { getProducts } from '@/lib/actions/products';
-import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '../ui/skeleton';
 
-export function ProductTable({ data: initialData }: { data: ProductSerializable[] }) {
-    const [data, setData] = React.useState(initialData);
+export function ProductTable({ data, onDataChanged }: { data: ProductSerializable[], onDataChanged: () => void }) {
     const [sorting, setSorting] = React.useState<SortingState>([
         { id: 'name', desc: false }
     ]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-    const [loading, setLoading] = React.useState(false);
-    const { toast } = useToast();
-
-    const refreshData = React.useCallback(async () => {
-        setLoading(true);
-        try {
-            const freshProducts = await getProducts();
-            setData(freshProducts);
-        } catch (e) {
-            toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể tải lại danh sách sản phẩm.' });
-        } finally {
-            setLoading(false);
-        }
-    }, [toast]);
-  
-    const columns = React.useMemo(() => getProductColumns(refreshData), [refreshData]);
+    
+    const columns = React.useMemo(() => getProductColumns(onDataChanged), [onDataChanged]);
 
     const table = useReactTable({
         data,
@@ -78,7 +60,7 @@ export function ProductTable({ data: initialData }: { data: ProductSerializable[
             }
             className="max-w-sm"
             />
-            <ProductFormModal onProductAdded={refreshData} />
+            <ProductFormModal onProductAdded={onDataChanged} />
         </div>
         <div className="rounded-md border">
             <Table>
@@ -98,15 +80,7 @@ export function ProductTable({ data: initialData }: { data: ProductSerializable[
                 ))}
             </TableHeader>
             <TableBody>
-                {loading ? (
-                    <TableRow>
-                        <TableCell colSpan={columns.length} className="h-24">
-                           <div className="flex justify-center">
-                             <Skeleton className="h-8 w-1/2" />
-                           </div>
-                        </TableCell>
-                    </TableRow>
-                ) : table.getRowModel().rows?.length ? (
+                {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                         <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                         {row.getVisibleCells().map((cell) => (
