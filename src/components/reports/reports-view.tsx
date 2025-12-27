@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { ExportButtons } from "./export-buttons";
 import { Badge } from "../ui/badge";
+import { format } from "date-fns";
 
 const CategoryBadge = ({ category }: { category: InvoiceSerializable['category'] }) => {
     const variant: "default" | "secondary" | "destructive" =
@@ -25,17 +26,8 @@ interface ReportsViewProps {
     allInvoicesData: InvoiceSerializable[];
 }
 
-interface GroupedProduct {
-    productName: string;
-    category: InvoiceSerializable['category'];
-    buyer: InvoiceSerializable['buyer'];
-    quantity: number;
-    total: number;
-}
-
 export function ReportsView({ allInvoicesData }: ReportsViewProps) {
-  const { groupedData, categoryTotals, grandTotal } = useMemo(() => {
-    const groups: { [key: string]: GroupedProduct } = {};
+  const { categoryTotals, grandTotal, sortedInvoices } = useMemo(() => {
     const categoryTotals: { [key: string]: number } = {
         BIGC: 0,
         SPLZD: 0,
@@ -49,64 +41,81 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
       if (categoryTotals[category] !== undefined) {
           categoryTotals[category] += invoice.grandTotal;
       }
+    });
 
-      (invoice.items || []).forEach(item => {
-        const key = `${item.productName}-${invoice.category}-${invoice.buyer}`;
-        if (!groups[key]) {
-          groups[key] = {
-            productName: item.productName,
-            category: invoice.category,
-            buyer: invoice.buyer,
-            quantity: 0,
-            total: 0,
-          };
-        }
-        groups[key].quantity += item.quantity;
-        groups[key].total += item.total;
-      });
+    const sortedInvoices = [...allInvoicesData].sort((a, b) => {
+        if (a.category < b.category) return -1;
+        if (a.category > b.category) return 1;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
     return { 
-        groupedData: Object.values(groups),
         categoryTotals,
-        grandTotal
+        grandTotal,
+        sortedInvoices,
     };
   }, [allInvoicesData]);
 
-  const exportData = groupedData.map(item => ({
-    Loai: item.category,
-    NguoiMua: item.buyer,
-    SanPham: item.productName,
-    SoLuong: item.quantity,
-    Tong: item.total,
-    DonGiaBinhQuan: item.quantity > 0 ? item.total / item.quantity : 0,
-  }));
+  const exportData = sortedInvoices.flatMap(invoice => 
+    (invoice.items || []).map(item => ({
+      Ngay: format(new Date(invoice.date), 'dd/MM/yyyy'),
+      Loai: invoice.category,
+      NguoiMua: invoice.buyer,
+      GhiChu: invoice.notes || '',
+      SanPham: item.productName,
+      SoLuong: item.quantity,
+      DonGia: item.price,
+      Tong: item.total,
+    }))
+  );
 
-  const renderCategoryRow = (category: InvoiceSerializable['category']) => {
-      const categoryItems = groupedData.filter(item => item.category === category);
-      if (categoryItems.length === 0) return null;
+  const renderInvoiceRows = (category: InvoiceSerializable['category']) => {
+      const categoryInvoices = sortedInvoices.filter(invoice => invoice.category === category);
+      if (categoryInvoices.length === 0) return null;
+      
+      let runningTotal = 0;
 
-      return (
-          <>
-            {categoryItems.map(item => (
-                 <TableRow key={`${item.productName}-${item.category}-${item.buyer}`}>
-                    <TableCell><CategoryBadge category={item.category} /></TableCell>
-                    <TableCell>{item.buyer}</TableCell>
+      const rows = categoryInvoices.flatMap(invoice => {
+           const invoiceItems = invoice.items || [];
+           runningTotal += invoice.grandTotal;
+
+           return invoiceItems.map((item, itemIndex) => (
+                <TableRow key={`${invoice.id}-${itemIndex}`}>
+                    {itemIndex === 0 && (
+                        <>
+                            <TableCell rowSpan={invoiceItems.length} className="align-top">
+                                {format(new Date(invoice.date), 'dd/MM/yyyy')}
+                            </TableCell>
+                            <TableCell rowSpan={invoiceItems.length} className="align-top"><CategoryBadge category={invoice.category} /></TableCell>
+                            <TableCell rowSpan={invoiceItems.length} className="align-top">{invoice.buyer}</TableCell>
+                            <TableCell rowSpan={invoiceItems.length} className="align-top max-w-[200px] whitespace-pre-wrap break-words">{invoice.notes}</TableCell>
+                        </>
+                    )}
                     <TableCell>{item.productName}</TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell className="text-right">
-                    {item.quantity > 0 ? new Intl.NumberFormat('vi-VN').format(item.total / item.quantity) : 0}
+                        {new Intl.NumberFormat('vi-VN').format(item.price)}
                     </TableCell>
                     <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
+                    {itemIndex === 0 && (
+                         <TableCell rowSpan={invoiceItems.length} className="text-right align-top font-medium">
+                            {new Intl.NumberFormat('vi-VN').format(invoice.grandTotal)}
+                        </TableCell>
+                    )}
                 </TableRow>
-            ))}
+           ))
+      });
+
+      return (
+        <>
+            {rows}
             <TableRow className="bg-muted/50 font-bold">
-                <TableCell colSpan={5} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
+                <TableCell colSpan={8} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
                 <TableCell className="text-right">
                     {new Intl.NumberFormat('vi-VN').format(categoryTotals[category])}
                 </TableCell>
             </TableRow>
-          </>
+        </>
       )
   }
 
@@ -116,10 +125,10 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
         <CardHeader>
             <div className="flex items-center justify-between">
                 <div>
-                    <CardTitle>Báo cáo tổng hợp</CardTitle>
-                    <CardDescription>Báo cáo tổng hợp số lượng và chi tiêu theo từng sản phẩm.</CardDescription>
+                    <CardTitle>Báo cáo chi tiết</CardTitle>
+                    <CardDescription>Báo cáo chi tiết theo từng hóa đơn và sản phẩm.</CardDescription>
                 </div>
-                <ExportButtons data={exportData} filename="BaoCao_TongHop_TheoSanPham" sheetName="TongHop" />
+                <ExportButtons data={exportData} filename="BaoCao_ChiTiet_TheoHoaDon" sheetName="ChiTiet" />
             </div>
         </CardHeader>
         <CardContent>
@@ -127,30 +136,33 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
             <Table>
                 <TableHeader>
                 <TableRow>
+                    <TableHead className="w-[100px]">Ngày</TableHead>
                     <TableHead>Loại</TableHead>
                     <TableHead>Người mua</TableHead>
+                    <TableHead>Ghi chú</TableHead>
                     <TableHead>Sản phẩm</TableHead>
-                    <TableHead className="text-right">Tổng số lượng</TableHead>
-                    <TableHead className="text-right">Đơn giá bình quân</TableHead>
-                    <TableHead className="text-right">Tổng chi tiêu</TableHead>
+                    <TableHead className="text-right">SL</TableHead>
+                    <TableHead className="text-right">Đơn giá</TableHead>
+                    <TableHead className="text-right">Tổng</TableHead>
+                    <TableHead className="text-right">Tổng HĐ</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {groupedData.length > 0 ? (
+                {sortedInvoices.length > 0 ? (
                     <>
-                        {renderCategoryRow('BIGC')}
-                        {renderCategoryRow('SPLZD')}
-                        {renderCategoryRow('OTHER')}
+                        {renderInvoiceRows('BIGC')}
+                        {renderInvoiceRows('SPLZD')}
+                        {renderInvoiceRows('OTHER')}
                     </>
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">Không có dữ liệu.</TableCell>
+                        <TableCell colSpan={9} className="h-24 text-center">Không có dữ liệu.</TableCell>
                     </TableRow>
                 )}
                 </TableBody>
                  <TableFooter>
                     <TableRow className="text-lg font-bold bg-secondary hover:bg-secondary">
-                        <TableCell colSpan={5} className="text-right">TỔNG CỘNG</TableCell>
+                        <TableCell colSpan={8} className="text-right">TỔNG CỘNG</TableCell>
                         <TableCell className="text-right">{new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(grandTotal)}</TableCell>
                     </TableRow>
                 </TableFooter>
