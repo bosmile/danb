@@ -18,13 +18,10 @@ import { addProduct, getProducts } from '@/lib/actions/products';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
 import type { ProductSerializable } from '@/types';
+import { useFormField } from '@/components/ui/form';
+import { useController } from 'react-hook-form';
 
-interface ProductAutocompleteProps {
-  value: string;
-  onValueChange: (value: string) => void;
-}
-
-export function ProductAutocomplete({ value, onValueChange }: ProductAutocompleteProps) {
+export function ProductAutocomplete() {
   const [open, setOpen] = React.useState(false);
   const [allProducts, setAllProducts] = React.useState<ProductSerializable[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -32,6 +29,11 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
   const debouncedSearch = useDebounce(search, 300);
   const { toast } = useToast();
   
+  // Use react-hook-form's context
+  const { name, control } = useFormField();
+  const { field } = useController({ name, control });
+  const { value, onChange } = field;
+
   React.useEffect(() => {
     async function fetchAllProducts() {
       setIsLoading(true);
@@ -46,7 +48,7 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
     }
     fetchAllProducts();
   }, [toast]);
-  
+
   const filteredProducts = React.useMemo(() => {
     if (!debouncedSearch) {
       return allProducts;
@@ -56,9 +58,8 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
     );
   }, [debouncedSearch, allProducts]);
 
-
   const handleSelect = (productName: string) => {
-    onValueChange(productName);
+    onChange(productName);
     setSearch('');
     setOpen(false);
   };
@@ -72,7 +73,7 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
       if (result.success && result.newProduct) {
         const newProduct = result.newProduct;
         setAllProducts(prev => [...prev, newProduct]);
-        onValueChange(newProduct.name);
+        onChange(newProduct.name);
         toast({ title: 'Thành công', description: `Đã tạo sản phẩm mới: ${newProduct.name}` });
       } else {
         throw new Error(result.error || 'Failed to create product');
@@ -117,7 +118,8 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
               <>
                 <CommandEmpty>
                   {showCreateNew ? (
-                    <div className="cursor-pointer p-2" onClick={handleCreateNew}>Tạo mới "{search}"</div>
+                     // Using onMouseDown to avoid conflict with onBlur from CommandInput
+                    <div className="cursor-pointer p-2" onMouseDown={handleCreateNew}>Tạo mới "{search}"</div>
                   ) : (
                     "Không tìm thấy sản phẩm."
                   )}

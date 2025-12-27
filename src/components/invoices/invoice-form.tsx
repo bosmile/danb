@@ -178,20 +178,19 @@ export function InvoiceForm({ invoiceToEdit, onSuccess }: InvoiceFormProps) {
           )}
         />
         <div className="sm:col-span-2">
-          <Controller
-            control={form.control}
-            name="productName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tên sản phẩm</FormLabel>
-                <ProductAutocomplete
-                  value={field.value}
-                  onValueChange={field.onChange}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="productName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tên sản phẩm</FormLabel>
+                  <FormControl>
+                    <ProductAutocomplete />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
         </div>
         <FormField
           control={form.control}
