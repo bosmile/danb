@@ -62,8 +62,7 @@ service cloud.firestore {
      *   data as a shared resource.
      */
     match /products/{productId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow read: if true;
       allow create: if isSignedIn();
       allow update: if isAuthenticatedAndDocExists();
       allow delete: if isAuthenticatedAndDocExists();
@@ -90,8 +89,7 @@ service cloud.firestore {
      *   data as a shared resource.
      */
     match /invoices/{invoiceId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow read: if true;
       allow create: if isSignedIn();
       allow update: if isAuthenticatedAndDocExists();
       allow delete: if isAuthenticatedAndDocExists();
