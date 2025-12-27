@@ -4,8 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'InvoiceFlow',
-  description: 'Purchase Invoice Management System',
+  title: 'DỰ ÁN NUÔI BƠ',
+  description: 'Hệ thống quản lý dự án nuôi bơ',
 };
 
 export default function RootLayout({

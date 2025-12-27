@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" size="icon" className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8">
                 <Package className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-bold">InvoiceFlow</h1>
+              <h1 className="text-xl font-bold">DỰ ÁN NUÔI BƠ</h1>
             </div>
             <SidebarTrigger className="md:hidden" />
           </div>
