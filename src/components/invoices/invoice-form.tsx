@@ -1,9 +1,10 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Form,
   FormControl,
@@ -49,12 +50,12 @@ type InvoiceFormData = z.infer<typeof formSchema>;
 
 type InvoiceFormProps = {
   invoiceToEdit?: InvoiceSerializable;
-  onSuccess: () => void;
 };
 
-export function InvoiceForm({ invoiceToEdit, onSuccess }: InvoiceFormProps) {
+export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(formSchema),
@@ -79,6 +80,12 @@ export function InvoiceForm({ invoiceToEdit, onSuccess }: InvoiceFormProps) {
   const price = watch('price');
   const total = isNaN(quantity) || isNaN(price) ? 0 : quantity * price;
 
+  const onSuccess = () => {
+    toast({ title: 'Thành công', description: `Đã ${invoiceToEdit ? 'cập nhật' : 'thêm'} hóa đơn.` });
+    router.push('/');
+    router.refresh(); // Tell Next.js to refresh server components
+  };
+
   async function onSubmit(values: InvoiceFormData) {
     setLoading(true);
     try {
@@ -95,10 +102,8 @@ export function InvoiceForm({ invoiceToEdit, onSuccess }: InvoiceFormProps) {
       
       if (invoiceToEdit) {
         await updateInvoice(invoiceToEdit.id, invoiceData);
-        toast({ title: 'Thành công', description: 'Đã cập nhật hóa đơn.' });
       } else {
         await addInvoice(invoiceData as Omit<Invoice, 'id' | 'total' | 'createdAt'>);
-        toast({ title: 'Thành công', description: 'Đã thêm hóa đơn mới.' });
       }
       onSuccess();
     } catch (error) {
@@ -178,21 +183,21 @@ export function InvoiceForm({ invoiceToEdit, onSuccess }: InvoiceFormProps) {
           )}
         />
         <div className="sm:col-span-2">
-            <FormField
-              control={form.control}
-              name="productName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tên sản phẩm</FormLabel>
-                  <FormControl>
-                    <ProductAutocomplete 
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <Controller
+                control={form.control}
+                name="productName"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Tên sản phẩm</FormLabel>
+                    <FormControl>
+                        <ProductAutocomplete
+                            value={field.value}
+                            onValueChange={field.onChange}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
             />
         </div>
         <FormField

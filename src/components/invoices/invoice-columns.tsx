@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { InvoiceFormModal } from './invoice-form-modal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +28,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { deleteInvoice } from '@/lib/actions/invoices';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const CategoryBadge = ({ category }: { category: InvoiceSerializable['category'] }) => {
     const variant: "default" | "secondary" | "destructive" =
@@ -119,11 +119,9 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-              <InvoiceFormModal invoiceToEdit={invoice} onInvoiceAdded={onDataChanged}>
-                <button className="w-full">
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Sửa</DropdownMenuItem>
-                </button>
-              </InvoiceFormModal>
+              <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+                <Link href={`/invoices/${invoice.id}/edit`}>Sửa</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="text-destructive focus:text-destructive">

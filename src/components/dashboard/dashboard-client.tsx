@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { InvoiceSerializable } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
-import { InvoiceFormModal } from '@/components/invoices/invoice-form-modal';
 import { StatsCards } from './stats-cards';
 import { DateRangePicker } from '@/components/shared/date-range-picker';
 import { getInvoices } from '@/lib/actions/invoices';
@@ -12,6 +11,9 @@ import { DateRange } from 'react-day-picker';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
+import { PlusCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export function DashboardClient({ initialInvoices }: { initialInvoices: InvoiceSerializable[] }) {
   const [invoices, setInvoices] = useState(initialInvoices);
@@ -43,7 +45,8 @@ export function DashboardClient({ initialInvoices }: { initialInvoices: InvoiceS
     if (date?.from && date?.to) {
       refreshInvoices(date);
     }
-  }, [date]);
+  }, [date, toast]);
+
 
   const onDateChange = (newDate: DateRange | undefined) => {
     setDate(newDate);
@@ -62,9 +65,12 @@ export function DashboardClient({ initialInvoices }: { initialInvoices: InvoiceS
   return (
     <div className="space-y-6">
       <PageHeader title="Trang chủ" description="Tổng quan về các hóa đơn chi tiêu.">
-        <InvoiceFormModal onInvoiceAdded={handleInvoiceUpdate}>
-          <span className="hidden sm:inline">Thêm hóa đơn</span>
-        </InvoiceFormModal>
+        <Button asChild>
+            <Link href="/invoices/add">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Thêm hóa đơn</span>
+            </Link>
+        </Button>
       </PageHeader>
       
       <div className="flex items-center justify-between">

@@ -28,7 +28,7 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
   const [open, setOpen] = React.useState(false);
   const [allProducts, setAllProducts] = React.useState<ProductSerializable[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [inputValue, setInputValue] = React.useState('');
+  const [inputValue, setInputValue] = React.useState(value || '');
   const debouncedSearch = useDebounce(inputValue, 300);
   const { toast } = useToast();
 
@@ -46,7 +46,7 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
     }
     fetchAllProducts();
   }, [toast]);
-
+  
   const filteredProducts = React.useMemo(() => {
     if (!debouncedSearch) {
       return allProducts;
@@ -59,7 +59,7 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
   const handleSelect = (currentValue: string) => {
     const newValue = currentValue === value ? '' : currentValue;
     onValueChange(newValue);
-    setInputValue('');
+    setInputValue(newValue);
     setOpen(false);
   };
   
@@ -73,12 +73,14 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
         const newProduct = result.newProduct;
         setAllProducts(prev => [...prev, newProduct]);
         onValueChange(newProduct.name);
+        setInputValue(newProduct.name);
         toast({ title: 'Thành công', description: `Đã tạo sản phẩm mới: ${newProduct.name}` });
       } else {
         // If product already exists, just select it
         const existing = allProducts.find(p => p.name.toLowerCase() === inputValue.toLowerCase());
         if (existing) {
           onValueChange(existing.name);
+          setInputValue(existing.name);
         } else {
            throw new Error(result.error || 'Failed to create product');
         }
@@ -87,7 +89,6 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
       toast({ variant: 'destructive', title: 'Lỗi', description: e.message || 'Không thể tạo sản phẩm mới.' });
     } finally {
       setIsLoading(false);
-      setInputValue('');
       setOpen(false);
     }
   };
@@ -97,15 +98,17 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {value || 'Chọn hoặc tạo sản phẩm...'}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+        <FormControl>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+            >
+              {value || 'Chọn hoặc tạo sản phẩm...'}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+        </FormControl>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command shouldFilter={false}>
@@ -120,9 +123,11 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
             )}
-            <CommandEmpty onMouseDown={handleCreateNew}>
-                Tạo mới "{inputValue}"
-            </CommandEmpty>
+            {
+              !isLoading && debouncedSearch && filteredProducts.length === 0 && !showCreateNew && (
+                <CommandEmpty>Không tìm thấy sản phẩm.</CommandEmpty>
+              )
+            }
             <CommandGroup>
               {filteredProducts.map((product) => (
                 <CommandItem
@@ -144,7 +149,7 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
               <CommandItem
                 onSelect={handleCreateNew}
                 value={`create_new_${debouncedSearch}`}
-                className="text-primary"
+                className="text-primary cursor-pointer"
               >
                 <Check className={cn('mr-2 h-4 w-4', 'opacity-0')} />
                 Tạo mới "{debouncedSearch}"
@@ -156,3 +161,6 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
     </Popover>
   );
 }
+
+// Add FormControl to exports for use in invoice-form.tsx
+import { FormControl } from '@/components/ui/form';
