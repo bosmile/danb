@@ -4,6 +4,7 @@ import * as React from 'react';
 import {
   ColumnFiltersState,
   SortingState,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -25,14 +26,24 @@ import { Input } from '@/components/ui/input';
 import { ProductSerializable } from '@/types';
 import { getProductColumns } from './product-columns';
 import { ProductFormModal } from './product-form-modal';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function ProductTable({ data, onDataChanged }: { data: ProductSerializable[], onDataChanged: () => void }) {
+    const isMobile = useIsMobile();
     const [sorting, setSorting] = React.useState<SortingState>([
         { id: 'name', desc: false }
     ]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+      createdAt: !isMobile
+    });
     
     const columns = React.useMemo(() => getProductColumns(onDataChanged), [onDataChanged]);
+
+    React.useEffect(() => {
+      setColumnVisibility({ createdAt: !isMobile });
+    }, [isMobile]);
+
 
     const table = useReactTable({
         data,
@@ -43,24 +54,31 @@ export function ProductTable({ data, onDataChanged }: { data: ProductSerializabl
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
+        onColumnVisibilityChange: setColumnVisibility,
         state: {
             sorting,
             columnFilters,
+            columnVisibility,
         },
     });
 
   return (
     <div className="w-full">
-        <div className="flex items-center justify-between py-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between py-4 gap-2">
             <Input
             placeholder="Lọc sản phẩm..."
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
             onChange={(event) =>
                 table.getColumn('name')?.setFilterValue(event.target.value)
             }
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
             />
-            <ProductFormModal onProductAdded={onDataChanged} />
+            <ProductFormModal onProductAdded={onDataChanged}>
+              <Button className="w-full sm:w-auto">
+                  <span className="sm:hidden">Thêm</span>
+                  <span className="hidden sm:inline">Thêm sản phẩm</span>
+              </Button>
+            </ProductFormModal>
         </div>
         <div className="rounded-md border">
             <Table>
@@ -101,6 +119,9 @@ export function ProductTable({ data, onDataChanged }: { data: ProductSerializabl
             </Table>
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
+           <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredRowModel().rows.length} sản phẩm.
+            </div>
             <Button
             variant="outline"
             size="sm"

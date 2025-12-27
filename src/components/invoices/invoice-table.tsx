@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InvoiceTableProps {
   data: InvoiceSerializable[];
@@ -40,11 +41,22 @@ interface InvoiceTableProps {
 }
 
 export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
+  const isMobile = useIsMobile();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+      imageUrl: false,
+      ...(isMobile && { category: false, date: false })
+  });
   
   const columns = React.useMemo(() => getInvoiceColumns(onDataChanged), [onDataChanged]);
+
+  React.useEffect(() => {
+    setColumnVisibility(current => ({
+      ...current,
+      ...(isMobile ? { category: false, date: false, imageUrl: false } : { category: true, date: true, imageUrl: false })
+    }));
+  }, [isMobile]);
 
   const table = useReactTable({
     data,
@@ -65,18 +77,18 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 gap-2">
+      <div className="flex flex-col sm:flex-row items-center py-4 gap-2">
         <Input
           placeholder="Lọc theo sản phẩm..."
           value={(table.getColumn('items')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
             table.getColumn('items')?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="ml-auto w-full sm:w-auto">
               Cột <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

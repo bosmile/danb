@@ -37,9 +37,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 const invoiceItemSchema = z.object({
     productName: z.string().min(1, { message: 'Tên sản phẩm không được để trống.' }),
     quantity: z.coerce.number().min(0.01, { message: 'Số lượng phải lớn hơn 0.' }),
-    price: z.coerce.number().min(1, { message: 'Đơn giá phải lớn hơn 0.' }),
-    total: z.coerce.number().min(1, { message: 'Tổng tiền phải lớn hơn 0.' }),
+    price: z.coerce.number().min(0, { message: 'Đơn giá không được âm.' }),
+    total: z.coerce.number().min(0, { message: 'Tổng tiền không được âm.' }),
+}).refine(data => data.price > 0 || data.total > 0, {
+    message: "Đơn giá hoặc Tổng tiền phải lớn hơn 0",
+    path: ["price"],
 });
+
 
 const formSchema = z.object({
   category: z.enum(['BIGC', 'SPLZD', 'OTHER'], {
@@ -85,13 +89,14 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
         },
   });
 
-  const { control, watch, setValue } = form;
+  const { control, watch, setValue, trigger } = form;
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'items',
   });
 
   const watchedItems = watch('items');
+  const [lastEditedField, setLastEditedField] = useState<'price' | 'total' | null>(null);
 
   useEffect(() => {
     const total = watchedItems.reduce((acc, item) => acc + (item.total || 0), 0);
@@ -100,15 +105,22 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
     }
   }, [watchedItems, setValue, form]);
 
-  const updateItemTotal = (index: number) => {
+  const updateItemFields = (index: number, changedField: 'price' | 'total' | 'quantity') => {
       const item = form.getValues(`items.${index}`);
-      if(item && !isNaN(item.quantity) && !isNaN(item.price)) {
+      if (!item || isNaN(item.quantity) || item.quantity <= 0) return;
+
+      if (changedField === 'quantity' || changedField === 'price') {
           const newTotal = item.quantity * item.price;
           setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
+      } else if (changedField === 'total') {
+          const newPrice = item.total / item.quantity;
+          setValue(`items.${index}.price`, newPrice, { shouldValidate: true });
       }
+      trigger(`items.${index}`);
   }
 
-  const onSuccess = () => {
+
+  const onSuccess = async () => {
     toast({ title: 'Thành công', description: `Đã ${invoiceToEdit ? 'cập nhật' : 'thêm'} hóa đơn.` });
     router.push('/');
     router.refresh();
@@ -129,7 +141,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
       } else {
         await addInvoice(invoiceData as Omit<Invoice, 'id' | 'createdAt'>);
       }
-      onSuccess();
+      await onSuccess();
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -148,7 +160,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
             <CardHeader>
                 <CardTitle>Thông tin chung</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                 control={form.control}
                 name="category"
@@ -211,7 +223,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                     </FormItem>
                 )}
                 />
-                 <div className="sm:col-span-2">
+                 <div className="md:col-span-2">
                     <FormItem>
                         <FormLabel>Ảnh hóa đơn</FormLabel>
                         <FormControl>
@@ -229,8 +241,8 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
             </CardHeader>
             <CardContent className="space-y-4">
                  {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start p-3 border rounded-md relative">
-                         <div className="col-span-12 sm:col-span-5">
+                    <div key={field.id} className="grid grid-cols-12 gap-x-2 gap-y-2 items-start p-3 border rounded-md relative">
+                         <div className="col-span-12">
                             <FormField
                                 control={control}
                                 name={`items.${index}.productName`}
@@ -248,7 +260,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                                 )}
                             />
                         </div>
-                        <div className="col-span-6 sm:col-span-2">
+                        <div className="col-span-4">
                              <FormField
                                 control={control}
                                 name={`items.${index}.quantity`}
@@ -256,14 +268,14 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                                     <FormItem>
                                     <FormLabel>Số lượng</FormLabel>
                                     <FormControl>
-                                        <Input type="number" step="any" {...field} onChange={(e) => {field.onChange(e); updateItemTotal(index)}} />
+                                        <Input type="number" step="any" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'quantity')}} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                        <div className="col-span-6 sm:col-span-2">
+                        <div className="col-span-8">
                             <FormField
                                 control={control}
                                 name={`items.${index}.price`}
@@ -271,14 +283,14 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                                     <FormItem>
                                     <FormLabel>Đơn giá</FormLabel>
                                     <FormControl>
-                                        <Input type="number" {...field} onChange={(e) => {field.onChange(e); updateItemTotal(index)}} />
+                                        <Input type="number" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'price')}} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                         <div className="col-span-10 sm:col-span-2">
+                         <div className="col-span-10">
                             <FormField
                                 control={control}
                                 name={`items.${index}.total`}
@@ -286,14 +298,14 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                                     <FormItem>
                                     <FormLabel>Tổng</FormLabel>
                                     <FormControl>
-                                        <Input type="number" {...field} readOnly className="bg-muted" />
+                                         <Input type="number" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'total')}} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                        <div className="col-span-2 sm:col-span-1 flex items-end justify-end h-full">
+                        <div className="col-span-2 flex items-end justify-end h-full">
                             <Button
                                 type="button"
                                 variant="destructive"

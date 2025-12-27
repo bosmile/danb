@@ -75,13 +75,14 @@ export function DashboardClient() {
             <Link href="/invoices/add">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Thêm hóa đơn</span>
+                <span className="sm:hidden">Thêm</span>
             </Link>
         </Button>
       </PageHeader>
       
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <StatsCards totalSpend={stats.totalSpend} totalItems={stats.totalItems} />
-        <DateRangePicker date={date} setDate={onDateChange} />
+        <DateRangePicker date={date} setDate={onDateChange} className="w-full md:w-auto" />
       </div>
 
       {loading ? (

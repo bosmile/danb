@@ -117,7 +117,7 @@ export function ProductFormModal({ productToEdit, onProductAdded, onProductUpdat
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
                 <Button type="submit" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {productToEdit ? 'Lưu thay đổi' : 'Tạo sản phẩm'}
+                    {productToEdit ? 'Lưu' : 'Tạo'}
                 </Button>
             </div>
           </form>

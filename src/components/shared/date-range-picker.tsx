@@ -53,7 +53,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
               id="date"
               variant={'outline'}
               className={cn(
-                'w-[300px] justify-start text-left font-normal',
+                'w-full md:w-[300px] justify-start text-left font-normal',
                 !date && 'text-muted-foreground'
               )}
             >
@@ -100,7 +100,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
             id="date"
             variant={'outline'}
             className={cn(
-              'w-[300px] justify-start text-left font-normal',
+              'w-full md:w-[300px] justify-start text-left font-normal',
               !date && 'text-muted-foreground'
             )}
           >
@@ -108,11 +108,11 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, 'LLL dd, y', { locale: vi })} -{' '}
-                  {format(date.to, 'LLL dd, y', { locale: vi })}
+                  {format(date.from, 'dd/MM/yyyy')} -{' '}
+                  {format(date.to, 'dd/MM/yyyy')}
                 </>
               ) : (
-                format(date.from, 'LLL dd, y', { locale: vi })
+                format(date.from, 'dd/MM/yyyy')
               )
             ) : (
               <span>Chọn khoảng ngày</span>
@@ -126,7 +126,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
             defaultMonth={date?.from}
             selected={date}
             onSelect={setDate}
-            numberOfMonths={2}
+            numberOfMonths={1}
             locale={vi}
           />
         </PopoverContent>
