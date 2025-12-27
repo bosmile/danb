@@ -1,9 +1,9 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Form,
   FormControl,
@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import type { Invoice, InvoiceSerializable, InvoiceCategory } from '@/types';
+import type { Invoice, InvoiceSerializable } from '@/types';
 import { ProductAutocomplete } from './product-autocomplete';
 import { addInvoice, updateInvoice } from '@/lib/actions/invoices';
 
@@ -74,7 +74,7 @@ export function InvoiceForm({ invoiceToEdit, onSuccess }: InvoiceFormProps) {
         },
   });
 
-  const { watch, setValue } = form;
+  const { watch } = form;
   const quantity = watch('quantity');
   const price = watch('price');
   const total = isNaN(quantity) || isNaN(price) ? 0 : quantity * price;
@@ -185,7 +185,10 @@ export function InvoiceForm({ invoiceToEdit, onSuccess }: InvoiceFormProps) {
                 <FormItem>
                   <FormLabel>Tên sản phẩm</FormLabel>
                   <FormControl>
-                    <ProductAutocomplete />
+                    <ProductAutocomplete 
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

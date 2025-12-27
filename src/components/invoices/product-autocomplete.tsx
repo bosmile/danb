@@ -18,21 +18,19 @@ import { addProduct, getProducts } from '@/lib/actions/products';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
 import type { ProductSerializable } from '@/types';
-import { useFormField } from '@/components/ui/form';
-import { useController } from 'react-hook-form';
 
-export function ProductAutocomplete() {
+interface ProductAutocompleteProps {
+  value: string;
+  onValueChange: (value: string) => void;
+}
+
+export function ProductAutocomplete({ value, onValueChange }: ProductAutocompleteProps) {
   const [open, setOpen] = React.useState(false);
   const [allProducts, setAllProducts] = React.useState<ProductSerializable[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [search, setSearch] = React.useState('');
-  const debouncedSearch = useDebounce(search, 300);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [inputValue, setInputValue] = React.useState('');
+  const debouncedSearch = useDebounce(inputValue, 300);
   const { toast } = useToast();
-  
-  // Use react-hook-form's context
-  const { name, control } = useFormField();
-  const { field } = useController({ name, control });
-  const { value, onChange } = field;
 
   React.useEffect(() => {
     async function fetchAllProducts() {
@@ -58,36 +56,43 @@ export function ProductAutocomplete() {
     );
   }, [debouncedSearch, allProducts]);
 
-  const handleSelect = (productName: string) => {
-    onChange(productName);
-    setSearch('');
+  const handleSelect = (currentValue: string) => {
+    const newValue = currentValue === value ? '' : currentValue;
+    onValueChange(newValue);
+    setInputValue('');
     setOpen(false);
   };
   
   const handleCreateNew = async () => {
-    if (!search) return;
+    if (!inputValue) return;
     
     setIsLoading(true);
     try {
-      const result = await addProduct({ name: search });
+      const result = await addProduct({ name: inputValue });
       if (result.success && result.newProduct) {
         const newProduct = result.newProduct;
         setAllProducts(prev => [...prev, newProduct]);
-        onChange(newProduct.name);
+        onValueChange(newProduct.name);
         toast({ title: 'Thành công', description: `Đã tạo sản phẩm mới: ${newProduct.name}` });
       } else {
-        throw new Error(result.error || 'Failed to create product');
+        // If product already exists, just select it
+        const existing = allProducts.find(p => p.name.toLowerCase() === inputValue.toLowerCase());
+        if (existing) {
+          onValueChange(existing.name);
+        } else {
+           throw new Error(result.error || 'Failed to create product');
+        }
       }
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Lỗi', description: e.message || 'Không thể tạo sản phẩm mới.' });
     } finally {
       setIsLoading(false);
-      setSearch('');
+      setInputValue('');
       setOpen(false);
     }
   };
 
-  const showCreateNew = !isLoading && search && !filteredProducts.some(p => p.name.toLowerCase() === search.toLowerCase());
+  const showCreateNew = !isLoading && debouncedSearch && !filteredProducts.some(p => p.name.toLowerCase() === debouncedSearch.toLowerCase());
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -106,51 +111,44 @@ export function ProductAutocomplete() {
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Tìm sản phẩm..."
-            value={search}
-            onValueChange={setSearch}
+            value={inputValue}
+            onValueChange={setInputValue}
           />
           <CommandList>
-            {isLoading && filteredProducts.length === 0 ? (
+            {(isLoading && !allProducts.length) && (
               <div className="p-2 flex items-center justify-center">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
-            ) : (
-              <>
-                <CommandEmpty>
-                  {showCreateNew ? (
-                     // Using onMouseDown to avoid conflict with onBlur from CommandInput
-                    <div className="cursor-pointer p-2" onMouseDown={handleCreateNew}>Tạo mới "{search}"</div>
-                  ) : (
-                    "Không tìm thấy sản phẩm."
-                  )}
-                </CommandEmpty>
-                <CommandGroup>
-                  {filteredProducts.map((product) => (
-                    <CommandItem
-                      key={product.id}
-                      value={product.name}
-                      onSelect={() => handleSelect(product.name)}
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          value === product.name ? 'opacity-100' : 'opacity-0'
-                        )}
-                      />
-                      {product.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-                {showCreateNew && (
-                  <CommandItem
-                    onSelect={handleCreateNew}
-                    value={`create_new_${search}`}
-                  >
-                    <Check className={cn('mr-2 h-4 w-4', 'opacity-0')} />
-                    Tạo mới "{search}"
-                  </CommandItem>
-                )}
-              </>
+            )}
+            <CommandEmpty onMouseDown={handleCreateNew}>
+                Tạo mới "{inputValue}"
+            </CommandEmpty>
+            <CommandGroup>
+              {filteredProducts.map((product) => (
+                <CommandItem
+                  key={product.id}
+                  value={product.name}
+                  onSelect={handleSelect}
+                >
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value === product.name ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                  {product.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {showCreateNew && (
+              <CommandItem
+                onSelect={handleCreateNew}
+                value={`create_new_${debouncedSearch}`}
+                className="text-primary"
+              >
+                <Check className={cn('mr-2 h-4 w-4', 'opacity-0')} />
+                Tạo mới "{debouncedSearch}"
+              </CommandItem>
             )}
           </CommandList>
         </Command>
