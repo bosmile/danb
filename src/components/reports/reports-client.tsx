@@ -36,31 +36,14 @@ export function ReportsClient() {
   const onDateChange = (newDate: DateRange | undefined) => {
     setDate(newDate);
   }
-  
-  const bigCInvoices = useMemo(() => invoices.filter(inv => inv.category === 'BIGC'), [invoices]);
-  
-  const otherInvoices = useMemo(() => {
-    const others = invoices.filter(inv => inv.category === 'SPLZD' || inv.category === 'OTHER');
-    const grouped: { [key: string]: { totalQuantity: number; totalAmount: number } } = {};
 
-    others.forEach(inv => {
-      if (!grouped[inv.productName]) {
-        grouped[inv.productName] = { totalQuantity: 0, totalAmount: 0 };
-      }
-      grouped[inv.productName].totalQuantity += inv.quantity;
-      grouped[inv.productName].totalAmount += inv.total;
-    });
-
-    return Object.entries(grouped).map(([productName, data]) => ({
-      productName,
-      ...data,
-    }));
-  }, [invoices]);
+  // We will pass all invoices to the view now
+  const allInvoices = useMemo(() => invoices, [invoices]);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <DateRangePicker date={date} setDate={onDateChange} />
+        <DateRangePicker date={date} setDate={onDateChange} allowManualInput={true} />
       </div>
       
       {loading ? (
@@ -69,7 +52,7 @@ export function ReportsClient() {
             <Skeleton className="h-40 w-full" />
         </div>
       ) : (
-        <ReportsView bigCData={bigCInvoices} otherData={otherInvoices} />
+        <ReportsView allInvoicesData={allInvoices} />
       )}
     </div>
   );
