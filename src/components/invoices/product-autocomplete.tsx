@@ -14,9 +14,10 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getProductSuggestions, addProduct } from '@/lib/actions/products';
+import { getProductSuggestions, addProduct, getProducts } from '@/lib/actions/products';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
+import type { ProductSerializable } from '@/types';
 
 interface ProductAutocompleteProps {
   value: string;
@@ -27,43 +28,58 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
   const [open, setOpen] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState('');
-  const debouncedInputValue = useDebounce(inputValue, 300);
+  const debouncedInputValue = useDebounce(value, 300);
   const { toast } = useToast();
+  const [allProducts, setAllProducts] = React.useState<ProductSerializable[]>([]);
+
+  React.useEffect(() => {
+    async function fetchAllProducts() {
+      const products = await getProducts();
+      setAllProducts(products);
+    }
+    fetchAllProducts();
+  }, []);
 
   React.useEffect(() => {
     if (debouncedInputValue) {
       setIsLoading(true);
-      getProductSuggestions(debouncedInputValue)
-        .then(setSuggestions)
-        .finally(() => setIsLoading(false));
+      const filtered = allProducts
+        .map(p => p.name)
+        .filter(name => name.toLowerCase().includes(debouncedInputValue.toLowerCase()));
+      setSuggestions(filtered);
+      setIsLoading(false);
     } else {
-      setSuggestions([]);
+      setSuggestions(allProducts.map(p => p.name));
     }
-  }, [debouncedInputValue]);
-  
+  }, [debouncedInputValue, allProducts]);
+
   const handleSelect = async (currentValue: string) => {
-    const createNewPrefix = 'Tạo mới "';
-    if (currentValue.startsWith(createNewPrefix)) {
-      const newProductName = currentValue.substring(createNewPrefix.length, currentValue.length - 1);
-      setIsLoading(true);
-      try {
-        const result = await addProduct({ name: newProductName });
-        if (result.success && result.newProduct) {
-          onValueChange(result.newProduct.name);
-          toast({ title: 'Thành công', description: `Đã tạo sản phẩm mới: ${result.newProduct.name}` });
-        }
-      } catch (e) {
-        toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể tạo sản phẩm mới.' });
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      onValueChange(currentValue);
-    }
+    onValueChange(currentValue);
     setOpen(false);
-    setInputValue('');
   };
+  
+  const handleCreateNew = async () => {
+    if (!value) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await addProduct({ name: value });
+      if (result.success && result.newProduct) {
+        onValueChange(result.newProduct.name);
+        // Refresh product list
+        const updatedProducts = await getProducts();
+        setAllProducts(updatedProducts);
+        toast({ title: 'Thành công', description: `Đã tạo sản phẩm mới: ${result.newProduct.name}` });
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể tạo sản phẩm mới.' });
+    } finally {
+      setIsLoading(false);
+      setOpen(false);
+    }
+  };
+
+  const showCreateNew = !isLoading && value && !suggestions.some(s => s.toLowerCase() === value.toLowerCase());
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -82,8 +98,8 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Tìm sản phẩm..."
-            value={inputValue}
-            onValueChange={setInputValue}
+            value={value}
+            onValueChange={onValueChange}
           />
           <CommandList>
             {isLoading && (
@@ -91,7 +107,7 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
             )}
-            {!isLoading && !suggestions.length && debouncedInputValue && (
+            {!isLoading && !suggestions.length && !showCreateNew && (
                 <CommandEmpty>Không tìm thấy sản phẩm.</CommandEmpty>
             )}
             <CommandGroup>
@@ -110,6 +126,15 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
                   {suggestion}
                 </CommandItem>
               ))}
+              {showCreateNew && (
+                <CommandItem
+                  onSelect={handleCreateNew}
+                  value={`create_new_${value}`}
+                >
+                  <Check className={cn('mr-2 h-4 w-4', 'opacity-0')} />
+                  Tạo mới "{value}"
+                </CommandItem>
+              )}
             </CommandGroup>
           </CommandList>
         </Command>
