@@ -1,0 +1,101 @@
+/**
+ * @file firestore.rules
+ * @description Firestore Security Rules for the InvoiceFlow application.
+ *
+ * ## Core Philosophy
+ * This ruleset implements a simple, authenticated-only access model. The core principle, as defined by the application's requirements, is that any user who has successfully signed in (including anonymous users) has full permission to read, create, update, and delete any data within the database. There is no concept of data ownership; all data is treated as a shared resource for all authenticated participants.
+ *
+ * ## Data Structure
+ * The data is organized into two distinct top-level collections:
+ * - /products/{productId}: Stores product information.
+ * - /invoices/{invoiceId}: Stores individual invoice records.
+ * This flat structure ensures that security rules for one entity type do not depend on or affect the other, simplifying access control.
+ *
+ * ## Key Security Decisions
+ * - **Authenticated Access Only**: The primary security boundary is authentication. Unauthenticated users are denied all access to the database.
+ * - **No Data Ownership**: The rules do not enforce any user-specific ownership. Any authenticated user can modify or delete documents created by any other user. This model is suitable for internal tools or applications where all users are trusted collaborators.
+ * - **Full CRUD Permissions**: Authenticated users are granted full create, read, update, and delete (CRUD) permissions on all collections.
+ * - **Denormalization for Authorization**: This principle is upheld by design. Since the security model does not require checking ownership or related documents, there is no need for `get()` calls, making the rules highly performant. All authorization decisions are based solely on the user's authentication status.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     * This includes password-based and anonymous users.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the user is authenticated and the document they are trying
+     * to modify or delete actually exists. This prevents writes to non-existent paths.
+     */
+    function isAuthenticatedAndDocExists() {
+      return isSignedIn() && resource != null;
+    }
+
+
+    // ------------------------------------------------------------------------
+    // Collection: products
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages product data. In this model, any authenticated user can create,
+     *   view, update, or delete any product. This is a shared collection for
+     *   all trusted application users.
+     * @path
+     *   /products/{productId}
+     * @allow
+     *   (create) An authenticated user (auth.uid: 'user_abc') creates a new product document.
+     * @deny
+     *   (get) An unauthenticated user (auth: null) tries to read a product.
+     * @principle
+     *   Grants full read/write access to any authenticated user, treating all
+     *   data as a shared resource.
+     */
+    match /products/{productId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAuthenticatedAndDocExists();
+      allow delete: if isAuthenticatedAndDocExists();
+    }
+
+
+    // ------------------------------------------------------------------------
+    // Collection: invoices
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages invoice records. Similar to products, any authenticated user
+     *   has full permissions to manage all invoices. This allows for a
+     *   collaborative environment where any user can handle any invoice.
+     * @path
+     *   /invoices/{invoiceId}
+     * @allow
+     *   (delete) An authenticated user (auth.uid: 'user_xyz') deletes an existing invoice.
+     * @deny
+     *   (list) An unauthenticated user (auth: null) tries to list all invoices.
+     * @principle
+     *   Grants full read/write access to any authenticated user, treating all
+     *   data as a shared resource.
+     */
+    match /invoices/{invoiceId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAuthenticatedAndDocExists();
+      allow delete: if isAuthenticatedAndDocExists();
+    }
+
+  }
+}
