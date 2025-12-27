@@ -57,6 +57,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
     SanPham: item.productName,
     SoLuong: item.quantity,
     Tong: item.total,
+    DonGiaBinhQuan: item.quantity > 0 ? item.total / item.quantity : 0,
   }));
 
   return (
@@ -79,6 +80,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     <TableHead>Loại</TableHead>
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Tổng số lượng</TableHead>
+                    <TableHead className="text-right">Đơn giá bình quân</TableHead>
                     <TableHead className="text-right">Tổng chi tiêu</TableHead>
                 </TableRow>
                 </TableHeader>
@@ -88,11 +90,14 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                       <TableCell><CategoryBadge category={item.category} /></TableCell>
                       <TableCell>{item.productName}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">
+                        {item.quantity > 0 ? new Intl.NumberFormat('vi-VN').format(item.total / item.quantity) : 0}
+                      </TableCell>
                       <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
                     </TableRow>
                 )) : (
                     <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">Không có dữ liệu.</TableCell>
+                        <TableCell colSpan={5} className="h-24 text-center">Không có dữ liệu.</TableCell>
                     </TableRow>
                 )}
                 </TableBody>

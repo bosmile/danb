@@ -3,7 +3,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Form,
@@ -40,6 +40,7 @@ const formSchema = z.object({
   productName: z.string().min(1, { message: 'Tên sản phẩm không được để trống.' }),
   quantity: z.coerce.number().min(0.01, { message: 'Số lượng phải lớn hơn 0.' }),
   price: z.coerce.number().min(1, { message: 'Đơn giá phải lớn hơn 0.' }),
+  total: z.coerce.number().min(1, { message: 'Tổng tiền phải lớn hơn 0.' }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
   imageUrl: z.string().optional(),
   // For file upload, we handle it separately
@@ -56,6 +57,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const [lastEdited, setLastEdited] = useState<'price' | 'total'>('price');
 
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(formSchema),
@@ -65,20 +67,42 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
           date: new Date(invoiceToEdit.date),
           quantity: Number(invoiceToEdit.quantity),
           price: Number(invoiceToEdit.price),
+          total: Number(invoiceToEdit.total),
         }
       : {
           category: 'BIGC',
           productName: '',
           quantity: 1,
           price: 0,
+          total: 0,
           date: new Date(),
         },
   });
 
-  const { watch } = form;
+  const { watch, setValue } = form;
   const quantity = watch('quantity');
   const price = watch('price');
-  const total = isNaN(quantity) || isNaN(price) ? 0 : quantity * price;
+  const total = watch('total');
+
+  useEffect(() => {
+    if (isNaN(quantity) || quantity <= 0) return;
+
+    if (lastEdited === 'price') {
+      if (!isNaN(price)) {
+        const newTotal = quantity * price;
+        if (newTotal !== total) {
+          setValue('total', newTotal, { shouldValidate: true });
+        }
+      }
+    } else { // lastEdited === 'total'
+      if (!isNaN(total)) {
+        const newPrice = total / quantity;
+        if (newPrice !== price) {
+          setValue('price', newPrice, { shouldValidate: true });
+        }
+      }
+    }
+  }, [quantity, price, total, setValue, lastEdited]);
 
   const onSuccess = () => {
     toast({ title: 'Thành công', description: `Đã ${invoiceToEdit ? 'cập nhật' : 'thêm'} hóa đơn.` });
@@ -103,7 +127,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
       if (invoiceToEdit) {
         await updateInvoice(invoiceToEdit.id, invoiceData);
       } else {
-        await addInvoice(invoiceData as Omit<Invoice, 'id' | 'total' | 'createdAt'>);
+        await addInvoice(invoiceData as Omit<Invoice, 'id' | 'createdAt'>);
       }
       onSuccess();
     } catch (error: any) {
@@ -220,23 +244,25 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
             <FormItem>
               <FormLabel>Đơn giá</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input type="number" {...field} onFocus={() => setLastEdited('price')} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="sm:col-span-2">
-            <FormLabel>Tổng cộng</FormLabel>
-            <Input
-              readOnly
-              value={new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-              }).format(total)}
-              className="mt-2 font-bold text-lg h-11 bg-muted"
-            />
-        </div>
+        <FormField
+          control={form.control}
+          name="total"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tổng cộng</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} onFocus={() => setLastEdited('total')} />
+              </FormControl>
+               <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="sm:col-span-2">
             <FormItem>
                 <FormLabel>Ảnh hóa đơn</FormLabel>
