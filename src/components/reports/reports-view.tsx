@@ -4,6 +4,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -33,10 +34,22 @@ interface GroupedProduct {
 }
 
 export function ReportsView({ allInvoicesData }: ReportsViewProps) {
-  const groupedData = useMemo(() => {
+  const { groupedData, categoryTotals, grandTotal } = useMemo(() => {
     const groups: { [key: string]: GroupedProduct } = {};
+    const categoryTotals: { [key: string]: number } = {
+        BIGC: 0,
+        SPLZD: 0,
+        OTHER: 0,
+    };
+    let grandTotal = 0;
 
     allInvoicesData.forEach(invoice => {
+      const category = invoice.category;
+      grandTotal += invoice.grandTotal;
+      if (categoryTotals[category] !== undefined) {
+          categoryTotals[category] += invoice.grandTotal;
+      }
+
       (invoice.items || []).forEach(item => {
         const key = `${item.productName}-${invoice.category}-${invoice.buyer}`;
         if (!groups[key]) {
@@ -53,7 +66,11 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
       });
     });
 
-    return Object.values(groups);
+    return { 
+        groupedData: Object.values(groups),
+        categoryTotals,
+        grandTotal
+    };
   }, [allInvoicesData]);
 
   const exportData = groupedData.map(item => ({
@@ -64,6 +81,34 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
     Tong: item.total,
     DonGiaBinhQuan: item.quantity > 0 ? item.total / item.quantity : 0,
   }));
+
+  const renderCategoryRow = (category: InvoiceSerializable['category']) => {
+      const categoryItems = groupedData.filter(item => item.category === category);
+      if (categoryItems.length === 0) return null;
+
+      return (
+          <>
+            {categoryItems.map(item => (
+                 <TableRow key={`${item.productName}-${item.category}-${item.buyer}`}>
+                    <TableCell><CategoryBadge category={item.category} /></TableCell>
+                    <TableCell>{item.buyer}</TableCell>
+                    <TableCell>{item.productName}</TableCell>
+                    <TableCell className="text-right">{item.quantity}</TableCell>
+                    <TableCell className="text-right">
+                    {item.quantity > 0 ? new Intl.NumberFormat('vi-VN').format(item.total / item.quantity) : 0}
+                    </TableCell>
+                    <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
+                </TableRow>
+            ))}
+            <TableRow className="bg-muted/50 font-bold">
+                <TableCell colSpan={5} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
+                <TableCell className="text-right">
+                    {new Intl.NumberFormat('vi-VN').format(categoryTotals[category])}
+                </TableCell>
+            </TableRow>
+          </>
+      )
+  }
 
   return (
     <div className="space-y-8">
@@ -91,23 +136,24 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {groupedData.length > 0 ? groupedData.map(item => (
-                    <TableRow key={`${item.productName}-${item.category}-${item.buyer}`}>
-                      <TableCell><CategoryBadge category={item.category} /></TableCell>
-                      <TableCell>{item.buyer}</TableCell>
-                      <TableCell>{item.productName}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">
-                        {item.quantity > 0 ? new Intl.NumberFormat('vi-VN').format(item.total / item.quantity) : 0}
-                      </TableCell>
-                      <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
-                    </TableRow>
-                )) : (
+                {groupedData.length > 0 ? (
+                    <>
+                        {renderCategoryRow('BIGC')}
+                        {renderCategoryRow('SPLZD')}
+                        {renderCategoryRow('OTHER')}
+                    </>
+                ) : (
                     <TableRow>
                         <TableCell colSpan={6} className="h-24 text-center">Không có dữ liệu.</TableCell>
                     </TableRow>
                 )}
                 </TableBody>
+                 <TableFooter>
+                    <TableRow className="text-lg font-bold bg-secondary hover:bg-secondary">
+                        <TableCell colSpan={5} className="text-right">TỔNG CỘNG</TableCell>
+                        <TableCell className="text-right">{new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(grandTotal)}</TableCell>
+                    </TableRow>
+                </TableFooter>
             </Table>
           </div>
         </CardContent>
