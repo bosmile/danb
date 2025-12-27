@@ -62,7 +62,10 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     accessorKey: 'items',
     header: 'Sản phẩm',
     cell: ({ row }) => {
-        const items = row.original.items;
+        const items = row.original.items || [];
+        if (items.length === 0) {
+            return <span>-</span>;
+        }
         if (items.length === 1) {
             return <span>{items[0].productName}</span>;
         }
