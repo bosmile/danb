@@ -57,8 +57,8 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
 
   const handleSelect = (currentValue: string) => {
     const selectedProductName = allProducts.find(p => p.name.toLowerCase() === currentValue.toLowerCase())?.name || currentValue;
-    setInputValue(selectedProductName);
     onValueChange(selectedProductName);
+    setInputValue(selectedProductName);
     setOpen(false);
   };
   
@@ -70,8 +70,8 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
       const result = await addProduct({ name: inputValue });
       if (result.success && result.newProduct) {
         const newProduct = result.newProduct;
-        setInputValue(newProduct.name);
         onValueChange(newProduct.name);
+        setInputValue(newProduct.name);
         
         const updatedProducts = await getProducts();
         setAllProducts(updatedProducts);
