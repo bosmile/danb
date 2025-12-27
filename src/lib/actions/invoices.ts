@@ -64,7 +64,7 @@ export async function getInvoiceById(id: string): Promise<InvoiceSerializable | 
 export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt'>) {
   const db = await getDb();
 
-  const grandTotal = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+  const grandTotal = invoiceData.items.reduce((sum, item) => sum + (item.total || 0), 0);
   
   const newInvoice = {
     ...invoiceData,
@@ -85,7 +85,7 @@ export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoic
   const db = await getDb();
   const invoiceRef = doc(db, 'invoices', id);
 
-  const grandTotal = invoiceData.items?.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+  const grandTotal = invoiceData.items?.reduce((sum, item) => sum + (item.total || 0), 0);
 
   const updateData: any = {
       ...invoiceData,

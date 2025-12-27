@@ -46,7 +46,7 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
       imageUrl: false,
-      ...(isMobile && { category: false, date: false })
+      ...(isMobile && { category: false, date: false, buyer: false })
   });
   
   const columns = React.useMemo(() => getInvoiceColumns(onDataChanged), [onDataChanged]);
@@ -54,7 +54,7 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
   React.useEffect(() => {
     setColumnVisibility(current => ({
       ...current,
-      ...(isMobile ? { category: false, date: false, imageUrl: false } : { category: true, date: true, imageUrl: false })
+      ...(isMobile ? { category: false, date: false, imageUrl: false, buyer: false } : { category: true, date: true, imageUrl: false, buyer: true })
     }));
   }, [isMobile]);
 
@@ -107,6 +107,7 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
                     {column.id === 'items' ? 'Sản phẩm' :
                      column.id === 'date' ? 'Ngày' :
                      column.id === 'category' ? 'Loại' :
+                     column.id === 'buyer' ? 'Người mua' :
                      column.id === 'grandTotal' ? 'Tổng cộng' :
                      column.id === 'imageUrl' ? 'Ảnh' :
                      column.id === 'actions' ? 'Hành động' : column.id}

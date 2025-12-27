@@ -27,6 +27,7 @@ interface ReportsViewProps {
 interface GroupedProduct {
     productName: string;
     category: InvoiceSerializable['category'];
+    buyer: InvoiceSerializable['buyer'];
     quantity: number;
     total: number;
 }
@@ -37,11 +38,12 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
 
     allInvoicesData.forEach(invoice => {
       (invoice.items || []).forEach(item => {
-        const key = `${item.productName}-${invoice.category}`;
+        const key = `${item.productName}-${invoice.category}-${invoice.buyer}`;
         if (!groups[key]) {
           groups[key] = {
             productName: item.productName,
             category: invoice.category,
+            buyer: invoice.buyer,
             quantity: 0,
             total: 0,
           };
@@ -56,6 +58,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
 
   const exportData = groupedData.map(item => ({
     Loai: item.category,
+    NguoiMua: item.buyer,
     SanPham: item.productName,
     SoLuong: item.quantity,
     Tong: item.total,
@@ -80,6 +83,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 <TableHeader>
                 <TableRow>
                     <TableHead>Loại</TableHead>
+                    <TableHead>Người mua</TableHead>
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Tổng số lượng</TableHead>
                     <TableHead className="text-right">Đơn giá bình quân</TableHead>
@@ -88,8 +92,9 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 </TableHeader>
                 <TableBody>
                 {groupedData.length > 0 ? groupedData.map(item => (
-                    <TableRow key={`${item.productName}-${item.category}`}>
+                    <TableRow key={`${item.productName}-${item.category}-${item.buyer}`}>
                       <TableCell><CategoryBadge category={item.category} /></TableCell>
+                      <TableCell>{item.buyer}</TableCell>
                       <TableCell>{item.productName}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
                       <TableCell className="text-right">
@@ -99,7 +104,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     </TableRow>
                 )) : (
                     <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">Không có dữ liệu.</TableCell>
+                        <TableCell colSpan={6} className="h-24 text-center">Không có dữ liệu.</TableCell>
                     </TableRow>
                 )}
                 </TableBody>

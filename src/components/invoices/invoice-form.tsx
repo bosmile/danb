@@ -33,6 +33,7 @@ import type { Invoice, InvoiceSerializable, InvoiceItem } from '@/types';
 import { ProductAutocomplete } from './product-autocomplete';
 import { addInvoice, updateInvoice } from '@/lib/actions/invoices';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Textarea } from '../ui/textarea';
 
 const invoiceItemSchema = z.object({
     productName: z.string().min(1, { message: 'Tên sản phẩm không được để trống.' }),
@@ -49,7 +50,11 @@ const formSchema = z.object({
   category: z.enum(['BIGC', 'SPLZD', 'OTHER'], {
     required_error: 'Vui lòng chọn loại hóa đơn.',
   }),
+  buyer: z.enum(['Hà', 'Hằng'], {
+    required_error: 'Vui lòng chọn người mua.',
+  }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
+  notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, { message: 'Hóa đơn phải có ít nhất một sản phẩm.' }),
   grandTotal: z.coerce.number(),
   imageUrl: z.string().optional(),
@@ -83,7 +88,9 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
         }
       : {
           category: 'BIGC',
+          buyer: 'Hà',
           date: new Date(),
+          notes: '',
           items: [{ productName: '', quantity: 1, price: 0, total: 0 }],
           grandTotal: 0
         },
@@ -96,7 +103,6 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
   });
 
   const watchedItems = watch('items');
-  const [lastEditedField, setLastEditedField] = useState<'price' | 'total' | null>(null);
 
   useEffect(() => {
     const total = watchedItems.reduce((acc, item) => acc + (item.total || 0), 0);
@@ -183,6 +189,27 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                     </FormItem>
                 )}
                 />
+                 <FormField
+                control={form.control}
+                name="buyer"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Người mua</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Chọn người mua" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="Hà">Hà</SelectItem>
+                        <SelectItem value="Hằng">Hằng</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
                 <FormField
                 control={form.control}
                 name="date"
@@ -231,6 +258,21 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                         </FormControl>
                         <FormMessage />
                     </FormItem>
+                </div>
+                 <div className="md:col-span-2">
+                     <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Ghi chú</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Thêm ghi chú cho hóa đơn..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                 </div>
             </CardContent>
         </Card>

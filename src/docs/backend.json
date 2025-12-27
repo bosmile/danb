@@ -69,6 +69,15 @@
           "type": "string",
           "description": "Category of the invoice (BIGC, SPLZD, OTHER)."
         },
+        "buyer": {
+            "type": "string",
+            "description": "The person who made the purchase.",
+            "enum": ["Hà", "Hằng"]
+        },
+        "notes": {
+            "type": "string",
+            "description": "Additional notes for the invoice."
+        },
         "items": {
             "type": "array",
             "description": "A list of items included in the invoice.",
@@ -95,6 +104,7 @@
         "id",
         "date",
         "category",
+        "buyer",
         "items",
         "grandTotal",
         "createdAt"

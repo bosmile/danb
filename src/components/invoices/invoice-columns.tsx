@@ -58,6 +58,10 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     header: 'Loại',
     cell: ({ row }) => <CategoryBadge category={row.getValue('category')} />,
   },
+   {
+    accessorKey: 'buyer',
+    header: 'Người mua',
+  },
   {
     accessorKey: 'items',
     header: 'Sản phẩm',
