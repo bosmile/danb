@@ -115,8 +115,12 @@ export function ProductAutocomplete({ value, onValueChange }: ProductAutocomplet
               </div>
             ) : (
               <>
-                <CommandEmpty onSelect={handleCreateNew}>
-                  <div className="cursor-pointer p-2">Tạo mới "{search}"</div>
+                <CommandEmpty>
+                  {showCreateNew ? (
+                    <div className="cursor-pointer p-2" onClick={handleCreateNew}>Tạo mới "{search}"</div>
+                  ) : (
+                    "Không tìm thấy sản phẩm."
+                  )}
                 </CommandEmpty>
                 <CommandGroup>
                   {filteredProducts.map((product) => (

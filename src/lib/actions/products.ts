@@ -3,7 +3,6 @@
 import { collection, getDocs, Timestamp, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Product, ProductSerializable } from '@/types';
-import { autocompleteProduct } from '@/ai/flows/product-autocomplete-and-creation';
 
 const mockProducts: Product[] = [
     { id: '1', name: 'Sữa tươi Vinamilk', createdAt: Timestamp.now() },
@@ -46,27 +45,4 @@ export async function addProduct(productData: { name: string }): Promise<{succes
 
     mockProducts.push(newProduct);
     return { success: true, newProduct: serializeProduct(newProduct) };
-}
-
-export async function getProductSuggestions(productName: string) {
-    const existingProducts = await getProducts();
-    const existingProductNames = existingProducts.map(p => p.name);
-
-    const result = await autocompleteProduct({
-        productName,
-        existingProducts: existingProductNames,
-    });
-    
-    let suggestions = result.suggestions;
-
-    if (result.createNewProduct) {
-        const createNewSuggestion = `Tạo mới "${productName}"`;
-        // Check if the "create new" suggestion is already implicitly there
-        const isSimilar = suggestions.some(s => s.toLowerCase() === productName.toLowerCase());
-        if (!isSimilar) {
-            suggestions = [createNewSuggestion, ...suggestions];
-        }
-    }
-    
-    return suggestions;
 }
