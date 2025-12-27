@@ -100,7 +100,7 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
   {
     accessorKey: 'grandTotal',
     header: 'Tổng cộng',
-    cell: ({ row }) => new Intl.NumberFormat('vi-VN').format(row.getValue('grandTotal')),
+    cell: ({ row }) => new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(row.getValue('grandTotal')),
   },
   {
     accessorKey: 'imageUrl',

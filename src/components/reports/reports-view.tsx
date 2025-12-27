@@ -87,6 +87,10 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
       Tong: item.total,
       DonGiaTB: item.quantity > 0 ? item.total / item.quantity : 0
   }));
+  
+  const currencyFormatter = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+  }
 
   const renderCategoryRows = (category: 'BIGC' | 'SPLZD' | 'OTHER') => {
     const categoryItems = groupedData.filter(item => item.category === category);
@@ -101,14 +105,14 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     <TableCell>{item.productName}</TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell>{Object.entries(item.quantityByPlace).map(([place, qty]) => `${place}: ${qty}`).join(', ')}</TableCell>
-                    <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.total)}</TableCell>
-                    <TableCell className="text-right">{new Intl.NumberFormat('vi-VN').format(item.quantity > 0 ? item.total / item.quantity : 0)}</TableCell>
+                    <TableCell className="text-right">{currencyFormatter(item.total)}</TableCell>
+                    <TableCell className="text-right">{currencyFormatter(item.quantity > 0 ? item.total / item.quantity : 0)}</TableCell>
                 </TableRow>
             ))}
             <TableRow className="bg-muted/50 font-bold">
                 <TableCell colSpan={6} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
                 <TableCell className="text-right">
-                    {new Intl.NumberFormat('vi-VN').format(categoryTotals[category])}
+                    {currencyFormatter(categoryTotals[category])}
                 </TableCell>
             </TableRow>
         </>
@@ -157,7 +161,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                  <TableFooter>
                     <TableRow className="text-lg font-bold bg-secondary hover:bg-secondary">
                         <TableCell colSpan={6} className="text-right">TỔNG CỘNG</TableCell>
-                        <TableCell className="text-right">{new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(grandTotal)}</TableCell>
+                        <TableCell className="text-right">{new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0}).format(grandTotal)}</TableCell>
                     </TableRow>
                 </TableFooter>
             </Table>

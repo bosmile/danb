@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Package } from 'lucide-react';
 
@@ -16,7 +18,7 @@ export function StatsCards({ totalSpend, totalItems }: StatsCardsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-lg sm:text-2xl font-bold">
-            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalSpend)}
+            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(totalSpend)}
           </div>
         </CardContent>
       </Card>

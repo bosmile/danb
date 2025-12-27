@@ -400,7 +400,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
         <div className="flex justify-between items-center bg-secondary p-4 rounded-lg">
             <span className="text-lg font-bold">TỔNG CỘNG</span>
             <span className="text-lg font-bold">
-                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(watch('grandTotal') || 0)}
+                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(watch('grandTotal') || 0)}
             </span>
         </div>
 
