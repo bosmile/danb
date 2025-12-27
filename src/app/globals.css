@@ -108,7 +108,9 @@ body {
     @apply bg-background text-foreground;
     position: relative;
   }
-  
+}
+
+@layer components {
   body::after {
     content: 'DỰ ÁN NUÔI BƠ';
     position: fixed;
