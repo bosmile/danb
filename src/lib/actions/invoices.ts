@@ -1,22 +1,13 @@
 'use server';
 
 import {
-  collection,
-  getDocs,
   Timestamp,
-  query,
-  where,
-  addDoc,
-  doc,
-  updateDoc,
-  deleteDoc,
-  orderBy,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import type { Invoice, InvoiceSerializable, InvoiceCategory } from '@/types';
+import type { Invoice, InvoiceSerializable } from '@/types';
+import { revalidatePath } from 'next/cache';
 
 // MOCK DATA for demonstration without real Firebase connection
-const mockInvoices: Invoice[] = [
+let mockInvoices: Invoice[] = [
   { id: '1', date: Timestamp.fromDate(new Date('2024-05-10')), category: 'BIGC', productName: 'Sữa tươi Vinamilk', quantity: 2, price: 30000, total: 60000, imageUrl: 'https://picsum.photos/seed/101/400/600', createdAt: Timestamp.now() },
   { id: '2', date: Timestamp.fromDate(new Date('2024-05-12')), category: 'SPLZD', productName: 'Tai nghe Sony', quantity: 1, price: 1200000, total: 1200000, imageUrl: 'https://picsum.photos/seed/102/400/600', createdAt: Timestamp.now() },
   { id: '3', date: Timestamp.fromDate(new Date('2024-05-15')), category: 'OTHER', productName: 'Giấy A4', quantity: 5, price: 65000, total: 325000, imageUrl: 'https://picsum.photos/seed/103/400/600', createdAt: Timestamp.now() },
@@ -34,47 +25,62 @@ function serializeInvoice(invoice: Invoice): InvoiceSerializable {
 
 
 export async function getInvoices(startDate?: Date, endDate?: Date): Promise<InvoiceSerializable[]> {
-  // In a real app, you would use the query below.
-  // For now, we filter mock data.
-  // const invoicesCol = collection(db, 'invoices');
-  // let q = query(invoicesCol, orderBy('date', 'desc'));
-  // if (startDate) q = query(q, where('date', '>=', startDate));
-  // if (endDate) q = query(q, where('date', '<=', endDate));
-  // const snapshot = await getDocs(q);
-  // const invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice));
-  // return invoices.map(serializeInvoice);
-
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 200));
   
-  let filteredInvoices = mockInvoices;
+  let filteredInvoices = [...mockInvoices].sort((a, b) => b.date.toMillis() - a.date.toMillis());
+  
   if (startDate) {
-    filteredInvoices = filteredInvoices.filter(inv => inv.date.toDate() >= startDate);
+    const startTimestamp = Timestamp.fromDate(startDate).toMillis();
+    filteredInvoices = filteredInvoices.filter(inv => inv.date.toMillis() >= startTimestamp);
   }
   if (endDate) {
-    filteredInvoices = filteredInvoices.filter(inv => inv.date.toDate() <= endDate);
+    const endTimestamp = Timestamp.fromDate(endDate).toMillis();
+    filteredInvoices = filteredInvoices.filter(inv => inv.date.toMillis() <= endTimestamp);
   }
 
   return filteredInvoices.map(serializeInvoice);
 }
 
-// Other actions would be implemented similarly
 export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'total' | 'createdAt'>) {
-  // Real implementation:
-  // const total = invoiceData.quantity * invoiceData.price;
-  // await addDoc(collection(db, 'invoices'), { ...invoiceData, total, createdAt: Timestamp.now() });
-  console.log('Adding invoice:', invoiceData);
   await new Promise(resolve => setTimeout(resolve, 500));
+  const total = invoiceData.quantity * invoiceData.price;
+  const newInvoice: Invoice = {
+    ...invoiceData,
+    id: String(Date.now()),
+    total,
+    date: Timestamp.fromDate(invoiceData.date as any),
+    createdAt: Timestamp.now(),
+  };
+  mockInvoices.unshift(newInvoice);
+  revalidatePath('/');
+  revalidatePath('/reports');
   return { success: true };
 }
 
-export async function updateInvoice(id: string, invoiceData: Partial<Invoice>) {
-  console.log('Updating invoice:', id, invoiceData);
+export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoice, 'id' | 'total' | 'createdAt'>>) {
   await new Promise(resolve => setTimeout(resolve, 500));
-  return { success: true };
+  const index = mockInvoices.findIndex(inv => inv.id === id);
+  if (index !== -1) {
+    const originalInvoice = mockInvoices[index];
+    const updatedData = { ...originalInvoice, ...invoiceData };
+    const total = updatedData.quantity * updatedData.price;
+    mockInvoices[index] = { ...updatedData, total, date: Timestamp.fromDate(updatedData.date as any) };
+    revalidatePath('/');
+    revalidatePath('/reports');
+    revalidatePath(`/invoices/${id}/edit`);
+    return { success: true };
+  }
+  return { success: false, error: 'Invoice not found' };
 }
 
 export async function deleteInvoice(id: string) {
-  console.log('Deleting invoice:', id);
   await new Promise(resolve => setTimeout(resolve, 500));
-  return { success: true };
+  const initialLength = mockInvoices.length;
+  mockInvoices = mockInvoices.filter(inv => inv.id !== id);
+  if (mockInvoices.length < initialLength) {
+    revalidatePath('/');
+    revalidatePath('/reports');
+    return { success: true };
+  }
+  return { success: false, error: 'Invoice not found' };
 }

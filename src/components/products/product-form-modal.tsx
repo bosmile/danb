@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { addProduct } from '@/lib/actions/products'; // Assume updateProduct exists too
+import { addProduct, updateProduct } from '@/lib/actions/products';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, PlusCircle } from 'lucide-react';
 
@@ -28,11 +28,12 @@ type ProductFormData = z.infer<typeof formSchema>;
 
 type ProductFormModalProps = {
   productToEdit?: ProductSerializable;
-  onProductAdded: () => void;
+  onProductAdded?: () => void;
+  onProductUpdated?: () => void;
   children?: React.ReactNode;
 };
 
-export function ProductFormModal({ productToEdit, onProductAdded, children }: ProductFormModalProps) {
+export function ProductFormModal({ productToEdit, onProductAdded, onProductUpdated, children }: ProductFormModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -43,9 +44,19 @@ export function ProductFormModal({ productToEdit, onProductAdded, children }: Pr
       name: productToEdit?.name || '',
     },
   });
+  
+  useEffect(() => {
+    if (open) {
+      form.reset({ name: productToEdit?.name || '' });
+    }
+  }, [open, productToEdit, form]);
 
   const handleSuccess = () => {
-    onProductAdded();
+    if (productToEdit) {
+      onProductUpdated?.();
+    } else {
+      onProductAdded?.();
+    }
     setOpen(false);
     form.reset({ name: '' });
   };
@@ -54,17 +65,17 @@ export function ProductFormModal({ productToEdit, onProductAdded, children }: Pr
     setLoading(true);
     try {
       if (productToEdit) {
-        // await updateProduct(productToEdit.id, values);
-        console.log("Updating product", productToEdit.id, values);
-        await new Promise(res => setTimeout(res, 500));
+        const result = await updateProduct(productToEdit.id, values);
+        if (!result.success) throw new Error(result.error);
         toast({ title: 'Thành công', description: 'Đã cập nhật sản phẩm.' });
       } else {
-        await addProduct(values);
+        const result = await addProduct(values);
+        if (!result.success) throw new Error(result.error);
         toast({ title: 'Thành công', description: 'Đã thêm sản phẩm mới.' });
       }
       handleSuccess();
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể lưu sản phẩm.' });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Lỗi', description: error.message || 'Không thể lưu sản phẩm.' });
     } finally {
         setLoading(false);
     }
@@ -102,7 +113,8 @@ export function ProductFormModal({ productToEdit, onProductAdded, children }: Pr
                 </FormItem>
               )}
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
                 <Button type="submit" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {productToEdit ? 'Lưu thay đổi' : 'Tạo sản phẩm'}

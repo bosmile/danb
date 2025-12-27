@@ -1,10 +1,10 @@
 'use server';
 
-import { collection, getDocs, Timestamp, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { Timestamp } from 'firebase/firestore';
 import type { Product, ProductSerializable } from '@/types';
+import { revalidatePath } from 'next/cache';
 
-const mockProducts: Product[] = [
+let mockProducts: Product[] = [
     { id: '1', name: 'Sữa tươi Vinamilk', createdAt: Timestamp.now() },
     { id: '2', name: 'Tai nghe Sony', createdAt: Timestamp.now() },
     { id: '3', name: 'Giấy A4', createdAt: Timestamp.now() },
@@ -21,12 +21,8 @@ function serializeProduct(product: Product): ProductSerializable {
 
 
 export async function getProducts(): Promise<ProductSerializable[]> {
-    // const productsCol = collection(db, 'products');
-    // const snapshot = await getDocs(productsCol);
-    // const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-    // return products.map(serializeProduct);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockProducts.map(serializeProduct);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return [...mockProducts].sort((a,b) => a.name.localeCompare(b.name)).map(serializeProduct);
 }
 
 export async function addProduct(productData: { name: string }): Promise<{success: boolean, newProduct?: ProductSerializable, error?: string}> {
@@ -38,11 +34,40 @@ export async function addProduct(productData: { name: string }): Promise<{succes
     }
     
     const newProduct: Product = { 
-        id: String(mockProducts.length + 1), 
+        id: String(Date.now()), 
         name: productData.name, 
         createdAt: Timestamp.now() 
     };
 
     mockProducts.push(newProduct);
+    revalidatePath('/products');
+    revalidatePath('/invoices/add');
     return { success: true, newProduct: serializeProduct(newProduct) };
+}
+
+export async function updateProduct(id: string, productData: { name: string }): Promise<{success: boolean, error?: string}> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const index = mockProducts.findIndex(p => p.id === id);
+    if (index !== -1) {
+        // Check for name conflict before updating
+        const existingProduct = mockProducts.find(p => p.name.toLowerCase() === productData.name.toLowerCase() && p.id !== id);
+        if (existingProduct) {
+            return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
+        }
+        mockProducts[index].name = productData.name;
+        revalidatePath('/products');
+        return { success: true };
+    }
+    return { success: false, error: 'Product not found' };
+}
+
+export async function deleteProduct(id: string): Promise<{success: boolean, error?: string}> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const initialLength = mockProducts.length;
+    mockProducts = mockProducts.filter(p => p.id !== id);
+    if (mockProducts.length < initialLength) {
+        revalidatePath('/products');
+        return { success: true };
+    }
+    return { success: false, error: 'Product not found' };
 }
