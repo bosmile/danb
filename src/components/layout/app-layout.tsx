@@ -1,7 +1,7 @@
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarTrigger } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import Image from 'next/image';
-import { Button } from '../ui/button';
+import { MobileNav } from './mobile-nav';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,13 +21,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
-          <SidebarTrigger className="hidden md:flex" />
-          <div className="flex-1">
-            {/* Can add a global search here in the future */}
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 md:justify-end">
+          <SidebarTrigger className="flex md:hidden" />
+          <div className="flex-1 md:hidden">
+            {/* Mobile-specific header content can go here if needed */}
           </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 pb-20 md:pb-6">{children}</main>
+        <MobileNav />
       </SidebarInset>
     </SidebarProvider>
   );
