@@ -132,16 +132,17 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.productName}</TableCell>
                     <TableCell className="text-right">{item.totalQuantity}</TableCell>
-                    <TableCell>{formatBuyerDetails(item.detailsByBuyer)}</TableCell>
-                    <TableCell className="text-right">{currencyFormatter(item.totalAmount)}</TableCell>
                     <TableCell className="text-right">{currencyFormatter(item.totalQuantity > 0 ? item.totalAmount / item.totalQuantity : 0)}</TableCell>
+                    <TableCell className="text-right">{currencyFormatter(item.totalAmount)}</TableCell>
+                    <TableCell>{formatBuyerDetails(item.detailsByBuyer)}</TableCell>
                 </TableRow>
             ))}
             <TableRow className="bg-muted/50 font-bold">
-                <TableCell colSpan={5} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
+                <TableCell colSpan={4} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
                 <TableCell className="text-right">
                     {currencyFormatter(categoryTotals[category])}
                 </TableCell>
+                <TableCell></TableCell>
             </TableRow>
         </>
     );
@@ -167,9 +168,9 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     <TableHead>Loại</TableHead>
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Tổng SL</TableHead>
-                    <TableHead>Chi tiết SL</TableHead>
-                    <TableHead className="text-right">Tổng tiền</TableHead>
                     <TableHead className="text-right">Đơn giá TB</TableHead>
+                    <TableHead className="text-right">Tổng tiền</TableHead>
+                    <TableHead>Chi tiết SL</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -187,8 +188,9 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 </TableBody>
                  <TableFooter>
                     <TableRow className="text-lg font-bold bg-secondary hover:bg-secondary">
-                        <TableCell colSpan={5} className="text-right">TỔNG CỘNG</TableCell>
+                        <TableCell colSpan={4} className="text-right">TỔNG CỘNG</TableCell>
                         <TableCell className="text-right">{new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0}).format(grandTotal)}</TableCell>
+                        <TableCell></TableCell>
                     </TableRow>
                 </TableFooter>
             </Table>
