@@ -2,7 +2,8 @@
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { format } from 'date-fns';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -104,8 +105,17 @@ export const exportToPdf = (headers: string[], body: any[][], fileName: string):
   doc.autoTable({
     head: [headers],
     body: body,
-    styles: { fontStyle: 'normal' },
+    styles: { font: 'times', fontStyle: 'normal' },
     headStyles: { fillColor: [63, 81, 181] }, // #3F51B5
   });
   doc.save(fileName);
+};
+
+
+export const exportToExcel = (data: any[], fileName: string, sheetName: string): void => {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = { Sheets: { [sheetName]: worksheet }, SheetNames: [sheetName] };
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    saveAs(blob, `${fileName}.xlsx`);
 };
