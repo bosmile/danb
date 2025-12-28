@@ -4,10 +4,9 @@ import { useState, useEffect, useMemo } from 'react';
 import type { InvoiceSerializable } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatsCards } from '@/components/dashboard/stats-cards';
-import { DateRangePicker } from '@/components/shared/date-range-picker';
+import { DatePicker } from '@/components/shared/date-picker';
 import { getInvoices } from '@/lib/actions/invoices';
 import { InvoiceTable } from '@/components/invoices/invoice-table';
-import { DateRange } from 'react-day-picker';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,20 +16,19 @@ import Link from 'next/link';
 
 export default function DashboardPage() {
   const [invoices, setInvoices] = useState<InvoiceSerializable[]>([]);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date()),
-  });
+  const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(new Date()));
+  const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const refreshInvoices = async (newDate?: DateRange) => {
-    const targetDate = newDate || date;
+  const refreshInvoices = async (start?: Date, end?: Date) => {
     setLoading(true);
     try {
-      if (targetDate?.from && targetDate?.to) {
-        const freshInvoices = await getInvoices(targetDate.from, targetDate.to);
+      if (start && end) {
+        const freshInvoices = await getInvoices(start, end);
         setInvoices(freshInvoices);
+      } else {
+        setInvoices([]);
       }
     } catch (error) {
       toast({
@@ -44,19 +42,12 @@ export default function DashboardPage() {
   };
   
   useEffect(() => {
-    if (date?.from && date?.to) {
-      refreshInvoices(date);
-    }
+    refreshInvoices(startDate, endDate);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date]);
-
-
-  const onDateChange = (newDate: DateRange | undefined) => {
-    setDate(newDate);
-  }
+  }, [startDate, endDate]);
 
   const handleInvoiceUpdate = () => {
-    refreshInvoices();
+    refreshInvoices(startDate, endDate);
   };
   
   const stats = useMemo(() => {
@@ -72,7 +63,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader title="Trang chủ" description="Tổng quan về các hóa đơn chi tiêu.">
         <div className="flex items-center gap-2">
-            <DateRangePicker date={date} setDate={onDateChange} className="w-full md:w-auto" allowManualInputOnly={true} />
+            <div className="flex items-center gap-2">
+              <DatePicker date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
+              <DatePicker date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+            </div>
             <Button asChild>
                 <Link href="/invoices/add">
                     <PlusCircle className="mr-2 h-4 w-4" />

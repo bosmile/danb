@@ -3,9 +3,8 @@ import { useState, useEffect } from 'react';
 import type { InvoiceSerializable, InvoiceCategory } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
 import { ReportsView } from '@/components/reports/reports-view';
-import { DateRangePicker } from '@/components/shared/date-range-picker';
+import { DatePicker } from '@/components/shared/date-picker';
 import { getInvoices } from '@/lib/actions/invoices';
-import { DateRange } from 'react-day-picker';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,20 +14,18 @@ type CategoryFilter = InvoiceCategory | 'ALL';
 
 export default function ReportsPage() {
     const [invoices, setInvoices] = useState<InvoiceSerializable[]>([]);
-    const [date, setDate] = useState<DateRange | undefined>({
-        from: startOfMonth(new Date()),
-        to: endOfMonth(new Date()),
-    });
+    const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(new Date()));
+    const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
     const [category, setCategory] = useState<CategoryFilter>('ALL');
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
     
     useEffect(() => {
-        if (date?.from && date?.to) {
+        if (startDate && endDate) {
             setLoading(true);
             // We fetch all invoices for the date range and then filter by category on the client.
             // This is simpler than modifying the server action for now.
-            getInvoices(date.from, date.to)
+            getInvoices(startDate, endDate)
                 .then(allInvoices => {
                     if (category === 'ALL') {
                         setInvoices(allInvoices);
@@ -43,11 +40,7 @@ export default function ReportsPage() {
                 }))
                 .finally(() => setLoading(false));
         }
-    }, [date, category, toast]);
-
-    const onDateChange = (newDate: DateRange | undefined) => {
-        setDate(newDate);
-    }
+    }, [startDate, endDate, category, toast]);
 
   return (
     <div className="space-y-6">
@@ -68,7 +61,10 @@ export default function ReportsPage() {
                     <SelectItem value="OTHER">Khác</SelectItem>
                 </SelectContent>
             </Select>
-            <DateRangePicker date={date} setDate={onDateChange} allowManualInputOnly={true} />
+            <div className="flex items-center gap-2">
+                <DatePicker date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
+                <DatePicker date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+            </div>
         </div>
       </PageHeader>
       
