@@ -35,7 +35,8 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
         fetchInvoice();
     }
 
-  }, [params, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
 
   return (
     <div className="space-y-6">
