@@ -125,3 +125,20 @@ body {
     white-space: nowrap;
   }
 }
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  .print-hidden {
+    display: none;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .no-print-watermark::after {
+    display: none !important;
+  }
+}

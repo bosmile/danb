@@ -11,11 +11,14 @@ const navItems = [
   { href: '/reports', label: 'Báo cáo', icon: BarChart3 },
 ];
 
-export function MobileNav() {
+export function MobileNav({ className }: { className?: string }) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-sm md:hidden">
+    <nav className={cn(
+        "fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-sm md:hidden",
+        className
+      )}>
       <div className="flex h-16 items-center justify-around">
         {navItems.map((item) => {
           const isActive = pathname === item.href;

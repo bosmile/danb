@@ -6,7 +6,7 @@ import { MobileNav } from './mobile-nav';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar className="print-hidden">
         <SidebarHeader className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -21,14 +21,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 md:justify-end">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 md:justify-end print-hidden">
           <SidebarTrigger className="flex md:hidden" />
           <div className="flex-1 md:hidden">
             {/* Mobile-specific header content can go here if needed */}
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 pb-20 md:pb-6">{children}</main>
-        <MobileNav />
+        <MobileNav className="print-hidden" />
       </SidebarInset>
     </SidebarProvider>
   );

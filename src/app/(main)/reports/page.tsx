@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { InvoiceSerializable } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
 import { ReportsView } from '@/components/reports/reports-view';
@@ -43,6 +43,7 @@ export default function ReportsPage() {
       <PageHeader
         title="Báo cáo tổng hợp"
         description="Xem báo cáo chi tiết và tổng hợp theo khoảng thời gian."
+        className="print-hidden"
       >
         <DateRangePicker date={date} setDate={onDateChange} allowManualInput={true} />
       </PageHeader>
