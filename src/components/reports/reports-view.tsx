@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { ExportButtons } from "./export-buttons";
+import { exportToPdfWithGrouping } from "@/lib/export";
+import { format } from "date-fns";
 
 interface ReportsViewProps {
     allInvoicesData: InvoiceSerializable[];
@@ -121,6 +123,17 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
     return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
   }
 
+  const handlePdfExport = () => {
+    const filename = `BaoCao_TheoSanPham_${format(new Date(), 'yyyyMMdd')}.pdf`;
+    exportToPdfWithGrouping({
+      data: groupedData,
+      categoryTotals,
+      grandTotal,
+      headers: ['Loại', 'Sản phẩm', 'Tổng SL', 'Đơn giá TB', 'Tổng tiền', 'Chi tiết SL'],
+      filename
+    });
+  }
+
   const renderCategoryRows = (category: 'BIGC' | 'SPLZD' | 'OTHER') => {
     const categoryItems = groupedData.filter(item => item.category === category);
     if (categoryItems.length === 0) return null;
@@ -157,7 +170,12 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     <CardTitle>Báo cáo theo sản phẩm</CardTitle>
                     <CardDescription>Báo cáo tổng hợp số lượng và giá trị theo từng sản phẩm.</CardDescription>
                 </div>
-                <ExportButtons data={exportData} filename="BaoCao_TheoSanPham" sheetName="TheoSanPham" />
+                <ExportButtons 
+                  data={exportData} 
+                  filename="BaoCao_TheoSanPham" 
+                  sheetName="TheoSanPham"
+                  onPdfExport={handlePdfExport}
+                />
             </div>
         </CardHeader>
         <CardContent>
