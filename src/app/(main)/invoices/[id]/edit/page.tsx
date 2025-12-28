@@ -12,12 +12,13 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
   const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceSerializable | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { id } = params;
   
   useEffect(() => {
     async function fetchInvoice() {
       setLoading(true);
       try {
-        const invoice = await getInvoiceById(params.id);
+        const invoice = await getInvoiceById(id);
         if (invoice) {
           setInvoiceToEdit(invoice);
         } else {
@@ -32,7 +33,7 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
     
     fetchInvoice();
 
-  }, [params.id, toast]);
+  }, [id, toast]);
 
   return (
     <div className="space-y-6">
