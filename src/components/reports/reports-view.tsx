@@ -19,14 +19,21 @@ interface ReportsViewProps {
 export function ReportsView({ allInvoicesData }: ReportsViewProps) {
 
   const { groupedData, categoryTotals, grandTotal } = useMemo(() => {
-    const groups: { [key: string]: { 
-        productName: string; 
-        category: string; 
-        buyer: string; 
-        quantity: number; 
-        total: number;
-        quantityByPlace: { [place: string]: number };
-     } } = {};
+    const groups: { 
+        [key: string]: {
+            productName: string;
+            category: string;
+            totalQuantity: number;
+            totalAmount: number;
+            detailsByBuyer: {
+                [buyer: string]: {
+                    quantity: number;
+                    quantityByPlace: { [place: string]: number };
+                };
+            };
+        };
+    } = {};
+
     const categoryTotals: { [key: string]: number } = {
         BIGC: 0,
         SPLZD: 0,
@@ -40,26 +47,42 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
       if (categoryTotals[invoice.category] !== undefined) {
           categoryTotals[invoice.category] += invoice.grandTotal;
       }
+      
       items.forEach(item => {
-        const key = `${item.productName}-${invoice.category}-${invoice.buyer}`;
+        const key = `${item.productName}-${invoice.category}`; // Group by product and category only
+
         if (!groups[key]) {
           groups[key] = {
             productName: item.productName,
             category: invoice.category,
-            buyer: invoice.buyer,
-            quantity: 0,
-            total: 0,
-            quantityByPlace: {},
+            totalQuantity: 0,
+            totalAmount: 0,
+            detailsByBuyer: {},
           };
         }
-        groups[key].quantity += item.quantity;
-        groups[key].total += item.total;
         
-        const place = invoice.receivingPlace;
-        if (!groups[key].quantityByPlace[place]) {
-            groups[key].quantityByPlace[place] = 0;
+        // Update totals for the group
+        groups[key].totalQuantity += item.quantity;
+        groups[key].totalAmount += item.total;
+        
+        // Initialize buyer details if not present
+        if (!groups[key].detailsByBuyer[invoice.buyer]) {
+            groups[key].detailsByBuyer[invoice.buyer] = {
+                quantity: 0,
+                quantityByPlace: {},
+            };
         }
-        groups[key].quantityByPlace[place] += item.quantity;
+
+        // Update buyer details
+        const buyerDetails = groups[key].detailsByBuyer[invoice.buyer];
+        buyerDetails.quantity += item.quantity;
+
+        // Update quantity by receiving place for the buyer
+        const place = invoice.receivingPlace;
+        if (!buyerDetails.quantityByPlace[place]) {
+            buyerDetails.quantityByPlace[place] = 0;
+        }
+        buyerDetails.quantityByPlace[place] += item.quantity;
       });
     });
 
@@ -78,14 +101,20 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
     };
   }, [allInvoicesData]);
 
+  const formatBuyerDetails = (detailsByBuyer: { [buyer: string]: { quantity: number; quantityByPlace: { [place: string]: number } } }) => {
+    return Object.entries(detailsByBuyer).map(([buyer, details]) => {
+        const placeDetails = Object.entries(details.quantityByPlace).map(([place, qty]) => `${place}: ${qty}`).join(', ');
+        return `${buyer}: ${details.quantity} (${placeDetails})`;
+    }).join('; ');
+  };
+
   const exportData = groupedData.map(item => ({
       Loai: item.category,
-      NguoiMua: item.buyer,
       SanPham: item.productName,
-      SoLuong: item.quantity,
-      ChiTietSL: Object.entries(item.quantityByPlace).map(([place, qty]) => `${place}: ${qty}`).join(', '),
-      Tong: item.total,
-      DonGiaTB: item.quantity > 0 ? item.total / item.quantity : 0
+      TongSL: item.totalQuantity,
+      ChiTiet: formatBuyerDetails(item.detailsByBuyer),
+      TongTien: item.totalAmount,
+      DonGiaTB: item.totalQuantity > 0 ? item.totalAmount / item.totalQuantity : 0,
   }));
   
   const currencyFormatter = (value: number) => {
@@ -101,16 +130,15 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
             {categoryItems.map((item, index) => (
                 <TableRow key={index}>
                     <TableCell>{item.category}</TableCell>
-                    <TableCell>{item.buyer}</TableCell>
                     <TableCell>{item.productName}</TableCell>
-                    <TableCell className="text-right">{item.quantity}</TableCell>
-                    <TableCell>{Object.entries(item.quantityByPlace).map(([place, qty]) => `${place}: ${qty}`).join(', ')}</TableCell>
-                    <TableCell className="text-right">{currencyFormatter(item.total)}</TableCell>
-                    <TableCell className="text-right">{currencyFormatter(item.quantity > 0 ? item.total / item.quantity : 0)}</TableCell>
+                    <TableCell className="text-right">{item.totalQuantity}</TableCell>
+                    <TableCell>{formatBuyerDetails(item.detailsByBuyer)}</TableCell>
+                    <TableCell className="text-right">{currencyFormatter(item.totalAmount)}</TableCell>
+                    <TableCell className="text-right">{currencyFormatter(item.totalQuantity > 0 ? item.totalAmount / item.totalQuantity : 0)}</TableCell>
                 </TableRow>
             ))}
             <TableRow className="bg-muted/50 font-bold">
-                <TableCell colSpan={6} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
+                <TableCell colSpan={5} className="text-right">Tổng {category === 'OTHER' ? 'Khác' : category}</TableCell>
                 <TableCell className="text-right">
                     {currencyFormatter(categoryTotals[category])}
                 </TableCell>
@@ -137,7 +165,6 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 <TableHeader>
                 <TableRow>
                     <TableHead>Loại</TableHead>
-                    <TableHead>Người mua</TableHead>
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Tổng SL</TableHead>
                     <TableHead>Chi tiết SL</TableHead>
@@ -154,13 +181,13 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                     </>
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center">Không có dữ liệu.</TableCell>
+                        <TableCell colSpan={6} className="h-24 text-center">Không có dữ liệu.</TableCell>
                     </TableRow>
                 )}
                 </TableBody>
                  <TableFooter>
                     <TableRow className="text-lg font-bold bg-secondary hover:bg-secondary">
-                        <TableCell colSpan={6} className="text-right">TỔNG CỘNG</TableCell>
+                        <TableCell colSpan={5} className="text-right">TỔNG CỘNG</TableCell>
                         <TableCell className="text-right">{new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0}).format(grandTotal)}</TableCell>
                     </TableRow>
                 </TableFooter>
