@@ -1,5 +1,6 @@
-import { InvoiceFormWrapper } from '@/components/invoices/invoice-form-wrapper';
+import { InvoiceForm } from '@/components/invoices/invoice-form';
 import { PageHeader } from '@/components/shared/page-header';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function AddInvoicePage() {
   return (
@@ -8,7 +9,11 @@ export default function AddInvoicePage() {
         title="Thêm hóa đơn mới"
         description="Điền thông tin chi tiết để thêm hóa đơn mới."
       />
-      <InvoiceFormWrapper />
+      <Card>
+        <CardContent className="pt-6">
+            <InvoiceForm />
+        </CardContent>
+      </Card>
     </div>
   );
 }

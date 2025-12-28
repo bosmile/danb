@@ -29,11 +29,12 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import type { Invoice, InvoiceSerializable, InvoiceItem } from '@/types';
+import type { Invoice, InvoiceSerializable } from '@/types';
 import { ProductAutocomplete } from './product-autocomplete';
 import { addInvoice, updateInvoice } from '@/lib/actions/invoices';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Textarea } from '../ui/textarea';
+import { Skeleton } from '../ui/skeleton';
 
 const invoiceItemSchema = z.object({
     productName: z.string().min(1, { message: 'Tên sản phẩm không được để trống.' }),
@@ -68,9 +69,10 @@ type InvoiceFormData = z.infer<typeof formSchema>;
 
 type InvoiceFormProps = {
   invoiceToEdit?: InvoiceSerializable & { receivingPlace?: 'NĐ' | 'HN' }; // old data might have this
+  loading?: boolean;
 };
 
-export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
+export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -162,6 +164,23 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (formLoading) {
+    return (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <div className="sm:col-span-2">
+                <Skeleton className="h-10 w-full" />
+            </div>
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <div className="sm:col-span-2">
+                <Skeleton className="h-12 w-full" />
+            </div>
+        </div>
+    );
   }
 
   return (
