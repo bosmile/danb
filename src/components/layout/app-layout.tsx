@@ -2,6 +2,7 @@ import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, 
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { MobileNav } from './mobile-nav';
 import { Logo } from '@/components/shared/logo';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Logo className="h-8 w-8" />
-              <h1 className="text-xl font-bold">DỰ ÁN NUÔI BƠ</h1>
+              <h1 className="text-xl font-bold font-headline">DỰ ÁN NUÔI BƠ</h1>
             </div>
             <SidebarTrigger className="md:hidden" />
           </div>
@@ -26,6 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1 md:hidden">
             {/* Mobile-specific header content can go here if needed */}
           </div>
+          <ThemeToggle />
         </header>
         <main className="flex-1 p-4 sm:p-6 pb-20 md:pb-6">{children}</main>
         <MobileNav className="print-hidden" />
