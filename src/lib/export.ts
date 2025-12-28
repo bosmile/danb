@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
+import { RobotoRegular } from './fonts/roboto-regular';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -39,6 +40,12 @@ interface ExportPdfWithGroupingProps {
 
 export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, headers, filename }: ExportPdfWithGroupingProps) => {
     const doc = new jsPDF() as jsPDFWithAutoTable;
+    
+    // Add the font to jsPDF
+    doc.addFileToVFS('Roboto-Regular.ttf', RobotoRegular);
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+    doc.setFont('Roboto');
+
 
     const body: any[] = [];
     const categories = ['BIGC', 'SPLZD', 'OTHER'];
@@ -68,7 +75,7 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
         head: [headers],
         body: body,
         theme: 'grid',
-        styles: { cellPadding: 2, fontSize: 8 },
+        styles: { font: 'Roboto', cellPadding: 2, fontSize: 8 },
         headStyles: { fillColor: [241, 245, 249], textColor: [100, 116, 139], fontStyle: 'bold' },
         didParseCell: function (data) {
             if (data.row.raw.some((cell: any) => cell.content?.includes('Tổng '))) {
@@ -89,6 +96,7 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
             ],
         ],
         theme: 'plain',
+        styles: { font: 'Roboto' }
     });
 
     doc.save(filename);
