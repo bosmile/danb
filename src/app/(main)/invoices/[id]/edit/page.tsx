@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { InvoiceFormWrapper } from '@/components/invoices/invoice-form-wrapper';
+import { InvoiceForm } from '@/components/invoices/invoice-form';
 import { PageHeader } from '@/components/shared/page-header';
 import { getInvoiceById } from '@/lib/actions/invoices';
-import { InvoiceSerializable } from '@/types';
+import type { InvoiceSerializable } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function EditInvoicePage({ params }: { params: { id: string } }) {
   const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceSerializable | undefined>(undefined);
@@ -39,7 +40,11 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
         title="Sửa hóa đơn"
         description="Cập nhật thông tin chi tiết cho hóa đơn."
       />
-      <InvoiceFormWrapper invoiceToEdit={invoiceToEdit} loading={loading} />
+      <Card>
+        <CardContent className="pt-6">
+            <InvoiceForm invoiceToEdit={invoiceToEdit} loading={loading} />
+        </CardContent>
+      </Card>
     </div>
   );
 }
