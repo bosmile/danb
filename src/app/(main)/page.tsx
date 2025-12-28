@@ -72,7 +72,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader title="Trang chủ" description="Tổng quan về các hóa đơn chi tiêu.">
         <div className="flex items-center gap-2">
-            <DateRangePicker date={date} setDate={onDateChange} className="w-full md:w-auto" allowManualInput={true} />
+            <DateRangePicker date={date} setDate={onDateChange} className="w-full md:w-auto" allowManualInputOnly={true} />
             <Button asChild>
                 <Link href="/invoices/add">
                     <PlusCircle className="mr-2 h-4 w-4" />

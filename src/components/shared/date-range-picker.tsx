@@ -15,10 +15,10 @@ import { Input } from '@/components/ui/input';
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   date: DateRange | undefined;
   setDate: (date: DateRange | undefined) => void;
-  allowManualInput?: boolean;
+  allowManualInputOnly?: boolean;
 }
 
-export function DateRangePicker({ className, date, setDate, allowManualInput = false }: DateRangePickerProps) {
+export function DateRangePicker({ className, date, setDate, allowManualInputOnly = false }: DateRangePickerProps) {
   const [fromValue, setFromValue] = React.useState<string>(date?.from ? format(date.from, 'dd/MM/yyyy') : '');
   const [toValue, setToValue] = React.useState<string>(date?.to ? format(date.to, 'dd/MM/yyyy') : '');
 
@@ -28,67 +28,30 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
   }, [date]);
 
   const handleFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFromValue(e.target.value);
-    const parsedDate = parse(e.target.value, 'dd/MM/yyyy', new Date());
+    const value = e.target.value;
+    setFromValue(value);
+    const parsedDate = parse(value, 'dd/MM/yyyy', new Date());
     if (!isNaN(parsedDate.getTime())) {
       setDate({ from: parsedDate, to: date?.to });
     }
   };
 
   const handleToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setToValue(e.target.value);
-    const parsedDate = parse(e.target.value, 'dd/MM/yyyy', new Date());
+    const value = e.target.value;
+    setToValue(value);
+    const parsedDate = parse(value, 'dd/MM/yyyy', new Date());
     if (!isNaN(parsedDate.getTime())) {
       setDate({ from: date?.from, to: parsedDate });
     }
   };
-
-  if (allowManualInput) {
+  
+  if (allowManualInputOnly) {
     return (
-      <div className={cn('grid gap-2', className)}>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              id="date"
-              variant={'outline'}
-              className={cn(
-                'w-full md:w-[300px] justify-start text-left font-normal',
-                !date && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date?.from ? (
-                date.to ? (
-                  <>
-                    {format(date.from, 'dd/MM/yyyy')} -{' '}
-                    {format(date.to, 'dd/MM/yyyy')}
-                  </>
-                ) : (
-                  format(date.from, 'dd/MM/yyyy')
-                )
-              ) : (
-                <span>Chọn khoảng ngày</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              initialFocus
-              mode="range"
-              defaultMonth={date?.from}
-              selected={date}
-              onSelect={setDate}
-              numberOfMonths={1}
-              locale={vi}
-            />
-             <div className="p-2 grid grid-cols-2 gap-2">
-                <Input placeholder="Từ ngày (dd/mm/yyyy)" value={fromValue} onChange={handleFromChange} />
-                <Input placeholder="Đến ngày (dd/mm/yyyy)" value={toValue} onChange={handleToChange} />
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-    );
+        <div className={cn("grid grid-cols-2 gap-2", className)}>
+            <Input placeholder="Từ ngày (dd/mm/yyyy)" value={fromValue} onChange={handleFromChange} />
+            <Input placeholder="Đến ngày (dd/mm/yyyy)" value={toValue} onChange={handleToChange} />
+        </div>
+    )
   }
 
   return (
@@ -99,7 +62,7 @@ export function DateRangePicker({ className, date, setDate, allowManualInput = f
             id="date"
             variant={'outline'}
             className={cn(
-              'w-full md:w-[300px] justify-start text-left font-normal',
+              'w-full justify-start text-left font-normal',
               !date && 'text-muted-foreground'
             )}
           >

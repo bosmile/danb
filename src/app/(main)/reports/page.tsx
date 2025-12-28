@@ -68,7 +68,7 @@ export default function ReportsPage() {
                     <SelectItem value="OTHER">Khác</SelectItem>
                 </SelectContent>
             </Select>
-            <DateRangePicker date={date} setDate={onDateChange} allowManualInput={true} />
+            <DateRangePicker date={date} setDate={onDateChange} allowManualInputOnly={true} />
         </div>
       </PageHeader>
       
