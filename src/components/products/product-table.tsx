@@ -34,14 +34,12 @@ export function ProductTable({ data, onDataChanged }: { data: ProductSerializabl
         { id: 'name', desc: false }
     ]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-      createdAt: !isMobile
-    });
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     
     const columns = React.useMemo(() => getProductColumns(onDataChanged), [onDataChanged]);
 
     React.useEffect(() => {
-      setColumnVisibility({ createdAt: !isMobile });
+      setColumnVisibility({});
     }, [isMobile]);
 
 

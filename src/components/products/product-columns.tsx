@@ -99,11 +99,6 @@ export const getProductColumns = (onDataChanged: () => void): ColumnDef<ProductS
       cell: ({ row }) => <div className="pl-4">{row.getValue('name')}</div>,
     },
     {
-      accessorKey: 'createdAt',
-      header: 'Ngày tạo',
-      cell: ({ row }) => format(new Date(row.getValue('createdAt')), 'dd/MM/yyyy'),
-    },
-    {
       id: 'actions',
       cell: ActionCell,
     },
