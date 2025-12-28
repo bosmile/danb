@@ -58,21 +58,6 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     header: 'Loại',
     cell: ({ row }) => <CategoryBadge category={row.getValue('category')} />,
   },
-   {
-    accessorKey: 'buyer',
-    header: 'Người mua',
-  },
-  {
-    accessorKey: 'receivingPlace',
-    header: 'Nơi nhận',
-    cell: ({ row }) => {
-        const items = row.original.items || [];
-        const places = [...new Set(items.map(item => item.receivingPlace))];
-        if (places.length === 0) return '-';
-        if (places.length === 1) return places[0];
-        return 'Nhiều nơi';
-    }
-  },
   {
     accessorKey: 'items',
     header: 'Sản phẩm',
@@ -115,6 +100,32 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     accessorKey: 'grandTotal',
     header: 'Tổng cộng',
     cell: ({ row }) => new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(row.getValue('grandTotal')),
+  },
+  {
+    id: 'buyerAndPlace',
+    header: 'Người mua - Nơi nhận',
+    accessorFn: (row) => {
+      const buyer = row.buyer;
+      const items = row.items || [];
+      const places = [...new Set(items.map(item => item.receivingPlace))];
+      const placeText = places.length === 0 ? '' : places.length === 1 ? places[0] : 'Nhiều nơi';
+      return `${buyer} - ${placeText}`;
+    }
+  },
+  {
+    accessorKey: 'buyer',
+    header: 'Người mua',
+  },
+  {
+    accessorKey: 'receivingPlace',
+    header: 'Nơi nhận',
+    cell: ({ row }) => {
+        const items = row.original.items || [];
+        const places = [...new Set(items.map(item => item.receivingPlace))];
+        if (places.length === 0) return '-';
+        if (places.length === 1) return places[0];
+        return 'Nhiều nơi';
+    }
   },
   {
     accessorKey: 'imageUrl',
