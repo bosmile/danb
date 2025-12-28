@@ -42,7 +42,7 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
     const doc = new jsPDF() as jsPDFWithAutoTable;
 
     doc.addFileToVFS('Inter-Regular.ttf', InterRegular);
-    doc.addFont('Inter-regular.ttf', 'Inter', 'normal');
+    doc.addFont('Inter-Regular.ttf', 'Inter', 'normal');
     doc.setFont('Inter');
 
     const body: any[] = [];
