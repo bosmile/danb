@@ -4,7 +4,6 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import { InterRegular } from './fonts/inter-regular';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -41,10 +40,6 @@ interface ExportPdfWithGroupingProps {
 export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, headers, filename }: ExportPdfWithGroupingProps) => {
     const doc = new jsPDF() as jsPDFWithAutoTable;
 
-    doc.addFileToVFS('Inter-Regular.ttf', InterRegular);
-    doc.addFont('Inter-Regular.ttf', 'Inter', 'normal');
-    doc.setFont('Inter');
-
     const body: any[] = [];
     const categories = ['BIGC', 'SPLZD', 'OTHER'];
 
@@ -73,7 +68,7 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
         head: [headers],
         body: body,
         theme: 'grid',
-        styles: { font: 'Inter', cellPadding: 2, fontSize: 8 },
+        styles: { cellPadding: 2, fontSize: 8 },
         headStyles: { fillColor: [241, 245, 249], textColor: [100, 116, 139], fontStyle: 'bold' },
         didParseCell: function (data) {
             if (data.row.raw.some((cell: any) => cell.content?.includes('Tổng '))) {
@@ -94,7 +89,6 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
             ],
         ],
         theme: 'plain',
-        styles: { font: 'Inter' }
     });
 
     doc.save(filename);
@@ -104,15 +98,10 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
 export const exportToPdf = (headers: string[], body: any[][], fileName: string): void => {
   const doc = new jsPDF() as jsPDFWithAutoTable;
   
-  // Add the font to jsPDF
-  doc.addFileToVFS('Inter-Regular.ttf', InterRegular);
-  doc.addFont('Inter-Regular.ttf', 'Inter', 'normal');
-  doc.setFont('Inter');
-
   doc.autoTable({
     head: [headers],
     body: body,
-    styles: { font: 'Inter', fontStyle: 'normal' },
+    styles: { fontStyle: 'normal' },
     headStyles: { fillColor: [63, 81, 181] }, // #3F51B5
   });
   doc.save(fileName);
