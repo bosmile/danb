@@ -4,7 +4,6 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import { RobotoRegular } from './fonts/roboto-regular';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -41,11 +40,8 @@ interface ExportPdfWithGroupingProps {
 export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, headers, filename }: ExportPdfWithGroupingProps) => {
     const doc = new jsPDF() as jsPDFWithAutoTable;
     
-    // Add the font to jsPDF
-    doc.addFileToVFS('Roboto-Regular.ttf', RobotoRegular);
-    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-    doc.setFont('Roboto');
-
+    // Set font to Times New Roman (built-in)
+    doc.setFont('times', 'normal');
 
     const body: any[] = [];
     const categories = ['BIGC', 'SPLZD', 'OTHER'];
@@ -75,7 +71,7 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
         head: [headers],
         body: body,
         theme: 'grid',
-        styles: { font: 'Roboto', cellPadding: 2, fontSize: 8 },
+        styles: { font: 'times', cellPadding: 2, fontSize: 8, overflow: 'linebreak' },
         headStyles: { fillColor: [241, 245, 249], textColor: [100, 116, 139], fontStyle: 'bold' },
         didParseCell: function (data) {
             if (data.row.raw.some((cell: any) => cell.content?.includes('Tổng '))) {
@@ -83,6 +79,14 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
                 data.cell.styles.fontStyle = 'bold';
             }
         },
+        columnStyles: {
+            0: { cellWidth: 'auto' }, // Loại
+            1: { cellWidth: 40 }, // Sản phẩm - allow wrap
+            2: { cellWidth: 'auto' }, // Tổng SL
+            3: { cellWidth: 'auto' }, // Đơn giá TB
+            4: { cellWidth: 'auto' }, // Tổng tiền
+            5: { cellWidth: 'auto' }, // Chi tiết SL
+        }
     });
 
     const finalY = (doc as any).lastAutoTable.finalY;
@@ -96,7 +100,7 @@ export const exportToPdfWithGrouping = ({ data, categoryTotals, grandTotal, head
             ],
         ],
         theme: 'plain',
-        styles: { font: 'Roboto' }
+        styles: { font: 'times' }
     });
 
     doc.save(filename);
