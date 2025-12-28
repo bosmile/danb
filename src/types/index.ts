@@ -15,6 +15,7 @@ export interface InvoiceItem {
   quantity: number;
   price: number;
   total: number;
+  receivingPlace: ReceivingPlace;
 }
 
 export interface Invoice {
@@ -22,7 +23,6 @@ export interface Invoice {
   date: Timestamp;
   category: InvoiceCategory;
   buyer: Buyer;
-  receivingPlace: ReceivingPlace;
   notes?: string;
   items: InvoiceItem[];
   grandTotal: number;
@@ -31,7 +31,7 @@ export interface Invoice {
 }
 
 // For client-side rendering where Timestamps are converted to strings or numbers
-export type InvoiceSerializable = Omit<Invoice, 'date' | 'createdAt'> & {
+export type InvoiceSerializable = Omit<Invoice, 'date' | 'createdAt' | 'receivingPlace'> & {
   date: string;
   createdAt: string;
 };

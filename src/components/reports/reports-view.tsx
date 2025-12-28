@@ -49,7 +49,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
       }
       
       items.forEach(item => {
-        const key = `${item.productName}-${invoice.category}`; // Group by product and category only
+        const key = `${item.productName}-${invoice.category}`; // Group by product and category
 
         if (!groups[key]) {
           groups[key] = {
@@ -61,24 +61,24 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
           };
         }
         
-        // Update totals for the group
-        groups[key].totalQuantity += item.quantity;
-        groups[key].totalAmount += item.total;
+        const group = groups[key];
+        group.totalQuantity += item.quantity;
+        group.totalAmount += item.total;
         
         // Initialize buyer details if not present
-        if (!groups[key].detailsByBuyer[invoice.buyer]) {
-            groups[key].detailsByBuyer[invoice.buyer] = {
+        if (!group.detailsByBuyer[invoice.buyer]) {
+            group.detailsByBuyer[invoice.buyer] = {
                 quantity: 0,
                 quantityByPlace: {},
             };
         }
 
         // Update buyer details
-        const buyerDetails = groups[key].detailsByBuyer[invoice.buyer];
+        const buyerDetails = group.detailsByBuyer[invoice.buyer];
         buyerDetails.quantity += item.quantity;
 
         // Update quantity by receiving place for the buyer
-        const place = invoice.receivingPlace;
+        const place = item.receivingPlace;
         if (!buyerDetails.quantityByPlace[place]) {
             buyerDetails.quantityByPlace[place] = 0;
         }

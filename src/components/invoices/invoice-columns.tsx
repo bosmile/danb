@@ -65,6 +65,13 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
   {
     accessorKey: 'receivingPlace',
     header: 'Nơi nhận',
+    cell: ({ row }) => {
+        const items = row.original.items || [];
+        const places = [...new Set(items.map(item => item.receivingPlace))];
+        if (places.length === 0) return '-';
+        if (places.length === 1) return places[0];
+        return 'Nhiều nơi';
+    }
   },
   {
     accessorKey: 'items',

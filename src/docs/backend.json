@@ -46,9 +46,14 @@
         "total": {
           "type": "number",
           "description": "Total amount for the item (calculated: quantity * price)."
+        },
+        "receivingPlace": {
+            "type": "string",
+            "description": "The place where the goods are received.",
+            "enum": ["NĐ", "HN"]
         }
       },
-      "required": ["productName", "quantity", "price", "total"]
+      "required": ["productName", "quantity", "price", "total", "receivingPlace"]
     },
     "Invoice": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -73,11 +78,6 @@
             "type": "string",
             "description": "The person who made the purchase.",
             "enum": ["Hà", "Hằng"]
-        },
-        "receivingPlace": {
-            "type": "string",
-            "description": "The place where the goods are received.",
-            "enum": ["NĐ", "HN"]
         },
         "notes": {
             "type": "string",
@@ -110,7 +110,6 @@
         "date",
         "category",
         "buyer",
-        "receivingPlace",
         "items",
         "grandTotal",
         "createdAt"

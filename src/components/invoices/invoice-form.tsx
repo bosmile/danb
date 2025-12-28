@@ -40,6 +40,9 @@ const invoiceItemSchema = z.object({
     quantity: z.coerce.number().min(0.01, { message: 'Số lượng phải lớn hơn 0.' }),
     price: z.coerce.number().min(0, { message: 'Đơn giá không được âm.' }),
     total: z.coerce.number().min(0, { message: 'Tổng tiền không được âm.' }),
+    receivingPlace: z.enum(['NĐ', 'HN'], {
+      required_error: 'Vui lòng chọn nơi nhận.',
+    }),
 }).refine(data => data.price > 0 || data.total > 0, {
     message: "Đơn giá hoặc Tổng tiền phải lớn hơn 0",
     path: ["price"],
@@ -53,9 +56,6 @@ const formSchema = z.object({
   buyer: z.enum(['Hà', 'Hằng'], {
     required_error: 'Vui lòng chọn người mua.',
   }),
-  receivingPlace: z.enum(['NĐ', 'HN'], {
-    required_error: 'Vui lòng chọn nơi nhận.',
-  }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
   notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, { message: 'Hóa đơn phải có ít nhất một sản phẩm.' }),
@@ -67,7 +67,7 @@ const formSchema = z.object({
 type InvoiceFormData = z.infer<typeof formSchema>;
 
 type InvoiceFormProps = {
-  invoiceToEdit?: InvoiceSerializable;
+  invoiceToEdit?: InvoiceSerializable & { receivingPlace?: 'NĐ' | 'HN' }; // old data might have this
 };
 
 export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
@@ -86,16 +86,17 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
               quantity: Number(item.quantity),
               price: Number(item.price),
               total: Number(item.total),
+              // If item doesn't have receivingPlace (old data), use the one from the invoice
+              receivingPlace: item.receivingPlace || invoiceToEdit.receivingPlace || 'NĐ',
           })),
           grandTotal: Number(invoiceToEdit.grandTotal)
         }
       : {
           category: 'BIGC',
           buyer: 'Hà',
-          receivingPlace: 'NĐ',
           date: new Date(),
           notes: '',
-          items: [{ productName: '', quantity: 1, price: 0, total: 0 }],
+          items: [{ productName: '', quantity: 1, price: 0, total: 0, receivingPlace: 'NĐ' }],
           grandTotal: 0
         },
   });
@@ -254,27 +255,6 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                     </FormItem>
                 )}
                 />
-                <FormField
-                    control={form.control}
-                    name="receivingPlace"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nơi nhận</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Chọn nơi nhận hàng" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            <SelectItem value="NĐ">NĐ</SelectItem>
-                            <SelectItem value="HN">HN</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
                  <div className="md:col-span-2">
                     <FormItem>
                         <FormLabel>Ảnh hóa đơn</FormLabel>
@@ -308,8 +288,8 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
             </CardHeader>
             <CardContent className="space-y-4">
                  {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-x-2 gap-y-2 items-start p-3 border rounded-md relative">
-                         <div className="col-span-12">
+                    <div key={field.id} className="grid grid-cols-12 gap-x-2 gap-y-4 items-start p-3 border rounded-md relative">
+                         <div className="col-span-12 md:col-span-8">
                             <FormField
                                 control={control}
                                 name={`items.${index}.productName`}
@@ -326,6 +306,29 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                                     </FormItem>
                                 )}
                             />
+                        </div>
+                        <div className="col-span-12 md:col-span-4">
+                           <FormField
+                              control={form.control}
+                              name={`items.${index}.receivingPlace`}
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Nơi nhận</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                      <SelectTrigger>
+                                          <SelectValue placeholder="Chọn nơi nhận" />
+                                      </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                      <SelectItem value="NĐ">NĐ</SelectItem>
+                                      <SelectItem value="HN">HN</SelectItem>
+                                      </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
                         </div>
                         <div className="col-span-4">
                              <FormField
@@ -389,7 +392,7 @@ export function InvoiceForm({ invoiceToEdit }: InvoiceFormProps) {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => append({ productName: '', quantity: 1, price: 0, total: 0 })}
+                    onClick={() => append({ productName: '', quantity: 1, price: 0, total: 0, receivingPlace: 'NĐ' })}
                 >
                     Thêm sản phẩm
                 </Button>
