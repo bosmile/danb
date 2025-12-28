@@ -79,29 +79,33 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
 
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: invoiceToEdit
-      ? {
-          ...invoiceToEdit,
-          date: new Date(invoiceToEdit.date),
-          items: invoiceToEdit.items.map(item => ({
-              ...item,
-              quantity: Number(item.quantity),
-              price: Number(item.price),
-              total: Number(item.total),
-              // If item doesn't have receivingPlace (old data), use the one from the invoice
-              receivingPlace: item.receivingPlace || invoiceToEdit.receivingPlace || 'NĐ',
-          })),
-          grandTotal: Number(invoiceToEdit.grandTotal)
-        }
-      : {
-          category: 'BIGC',
-          buyer: 'Hà',
-          date: new Date(),
-          notes: '',
-          items: [{ productName: '', quantity: 1, price: 0, total: 0, receivingPlace: 'NĐ' }],
-          grandTotal: 0
-        },
+    defaultValues: {
+      category: 'BIGC',
+      buyer: 'Hà',
+      date: new Date(),
+      notes: '',
+      items: [{ productName: '', quantity: 1, price: 0, total: 0, receivingPlace: 'NĐ' }],
+      grandTotal: 0
+    },
   });
+
+  useEffect(() => {
+    if (invoiceToEdit) {
+      form.reset({
+        ...invoiceToEdit,
+        date: new Date(invoiceToEdit.date),
+        items: invoiceToEdit.items.map(item => ({
+            ...item,
+            quantity: Number(item.quantity),
+            price: Number(item.price),
+            total: Number(item.total),
+            // If item doesn't have receivingPlace (old data), use the one from the invoice
+            receivingPlace: item.receivingPlace || invoiceToEdit.receivingPlace || 'NĐ',
+        })),
+        grandTotal: Number(invoiceToEdit.grandTotal)
+      });
+    }
+  }, [invoiceToEdit, form]);
 
   const { control, watch, setValue, trigger } = form;
   const { fields, append, remove } = useFieldArray({
@@ -197,7 +201,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Loại</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Chọn loại hóa đơn" />
@@ -219,7 +223,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Người mua</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Chọn người mua" />
@@ -333,7 +337,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                               render={({ field }) => (
                                   <FormItem>
                                   <FormLabel>Nơi nhận</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                       <FormControl>
                                       <SelectTrigger>
                                           <SelectValue placeholder="Chọn nơi nhận" />
