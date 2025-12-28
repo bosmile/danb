@@ -1,7 +1,7 @@
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarTrigger } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
-import Image from 'next/image';
 import { MobileNav } from './mobile-nav';
+import { Logo } from '@/components/shared/logo';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-full" />
+              <Logo className="h-8 w-8" />
               <h1 className="text-xl font-bold">DỰ ÁN NUÔI BƠ</h1>
             </div>
             <SidebarTrigger className="md:hidden" />

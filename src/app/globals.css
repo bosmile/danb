@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 0 0% 96.1%;
@@ -107,10 +103,9 @@ body {
   body {
     @apply bg-background text-foreground;
     position: relative;
+    font-family: Arial, Helvetica, sans-serif;
   }
-}
-
-@layer components {
+  
   body::after {
     content: 'DỰ ÁN NUÔI BƠ';
     position: fixed;
@@ -138,7 +133,7 @@ body {
     padding: 0 !important;
     margin: 0 !important;
   }
-  .no-print-watermark::after {
-    display: none !important;
+  body::after {
+    display: none;
   }
 }
