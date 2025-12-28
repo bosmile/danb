@@ -102,6 +102,13 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
                 </Tooltip>
             </TooltipProvider>
         )
+    },
+    filterFn: (row, columnId, filterValue) => {
+        if (!filterValue) return true;
+        const items = row.original.items || [];
+        return items.some(item => 
+            item.productName.toLowerCase().includes((filterValue as string).toLowerCase())
+        );
     }
   },
   {
