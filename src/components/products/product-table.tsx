@@ -25,8 +25,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ProductSerializable } from '@/types';
 import { getProductColumns } from './product-columns';
-import { ProductFormModal } from './product-form-modal';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Card, CardContent } from '../ui/card';
 
 export function ProductTable({ data, onDataChanged }: { data: ProductSerializable[], onDataChanged: () => void }) {
     const isMobile = useIsMobile();
@@ -62,80 +62,80 @@ export function ProductTable({ data, onDataChanged }: { data: ProductSerializabl
 
   return (
     <div className="w-full">
-        <div className="flex flex-col sm:flex-row items-center justify-between py-4 gap-2">
-            <Input
-            placeholder="Lọc sản phẩm..."
-            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-                table.getColumn('name')?.setFilterValue(event.target.value)
-            }
-            className="w-full sm:max-w-sm"
-            />
-            <ProductFormModal onProductAdded={onDataChanged}>
-              <Button className="w-full sm:w-auto">
-                  <span className="sm:hidden">Thêm</span>
-                  <span className="hidden sm:inline">Thêm sản phẩm</span>
-              </Button>
-            </ProductFormModal>
-        </div>
-        <div className="rounded-md border">
-            <Table>
-            <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                    return (
-                        <TableHead key={header.id}>
-                        {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                    );
-                    })}
-                </TableRow>
-                ))}
-            </TableHeader>
-            <TableBody>
-                {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                        {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                        ))}
+        <Card>
+            <CardContent className="p-0">
+                <div className="p-4">
+                    <Input
+                        placeholder="Lọc sản phẩm..."
+                        value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+                        onChange={(event) =>
+                            table.getColumn('name')?.setFilterValue(event.target.value)
+                        }
+                        className="w-full sm:max-w-xs"
+                    />
+                </div>
+                <div className="border-t">
+                    <Table>
+                    <TableHeader>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => {
+                            return (
+                                <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                    ? null
+                                    : flexRender(header.column.columnDef.header, header.getContext())}
+                                </TableHead>
+                            );
+                            })}
                         </TableRow>
-                    ))
-                ) : (
-                    <TableRow>
-                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                        Không có sản phẩm.
-                        </TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-            </Table>
-        </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-           <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredRowModel().rows.length} sản phẩm.
+                        ))}
+                    </TableHeader>
+                    <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map((row) => (
+                                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                                {row.getVisibleCells().map((cell) => (
+                                    <TableCell key={cell.id} className={cell.column.id === 'actions' ? 'text-center' : ''}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </TableCell>
+                                ))}
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={columns.length} className="h-24 text-center">
+                                Không có sản phẩm nào.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                    </Table>
+                </div>
+            </CardContent>
+        </Card>
+        <div className="flex items-center justify-between py-4">
+           <div className="text-sm text-muted-foreground">
+              Tìm thấy {table.getFilteredRowModel().rows.length} trên tổng số {data.length} sản phẩm.
             </div>
-            <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            >
-            Trước
-            </Button>
-            <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            >
-            Sau
-            </Button>
+            <div className="flex items-center gap-2">
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                >
+                Trước
+                </Button>
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                >
+                Sau
+                </Button>
+            </div>
       </div>
     </div>
   );

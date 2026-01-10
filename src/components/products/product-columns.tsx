@@ -2,7 +2,6 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { ProductSerializable } from '@/types';
-import { format } from 'date-fns';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -91,16 +90,18 @@ export const getProductColumns = (onDataChanged: () => void): ColumnDef<ProductS
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          className="-ml-4"
         >
           Tên sản phẩm
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div className="pl-4">{row.getValue('name')}</div>,
+      cell: ({ row }) => <div>{row.getValue('name')}</div>,
     },
     {
       id: 'actions',
       cell: ActionCell,
+      header: () => <div className="text-center">Hành động</div>,
     },
   ];
 };
