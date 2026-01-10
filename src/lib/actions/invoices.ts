@@ -61,55 +61,70 @@ export async function getInvoiceById(id: string): Promise<InvoiceSerializable | 
     }
 }
 
-export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt'>) {
-  const db = await getDb();
+export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt'>): Promise<{success: boolean, error?: string}> {
+  try {
+    const db = await getDb();
 
-  const grandTotal = invoiceData.items.reduce((sum, item) => sum + (item.total || 0), 0);
-  
-  const newInvoice = {
-    ...invoiceData,
-    date: Timestamp.fromDate(invoiceData.date as any),
-    grandTotal: grandTotal,
-    createdAt: Timestamp.now(),
-    imageUrl: invoiceData.imageUrl || 'https://picsum.photos/seed/placeholder/400/600',
-  };
-
-  await addDoc(collection(db, 'invoices'), newInvoice);
-  
-  revalidatePath('/');
-  revalidatePath('/reports');
-  return { success: true };
-}
-
-export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoice, 'id' | 'createdAt'>>) {
-  const db = await getDb();
-  const invoiceRef = doc(db, 'invoices', id);
-
-  const grandTotal = invoiceData.items?.reduce((sum, item) => sum + (item.total || 0), 0);
-
-  const updateData: any = {
+    const grandTotal = invoiceData.items.reduce((sum, item) => sum + (item.total || 0), 0);
+    
+    const newInvoice = {
       ...invoiceData,
       date: Timestamp.fromDate(invoiceData.date as any),
-  };
+      grandTotal: grandTotal,
+      createdAt: Timestamp.now(),
+      imageUrl: invoiceData.imageUrl || 'https://picsum.photos/seed/placeholder/400/600',
+    };
 
-  if (grandTotal !== undefined) {
-      updateData.grandTotal = grandTotal;
+    await addDoc(collection(db, 'invoices'), newInvoice);
+    
+    revalidatePath('/');
+    revalidatePath('/reports');
+    return { success: true };
+  } catch (error) {
+    console.error("Error adding invoice: ", error);
+    return { success: false, error: "Không thể thêm hóa đơn. Vui lòng thử lại." };
   }
-
-  await updateDoc(invoiceRef, updateData);
-
-  revalidatePath('/');
-  revalidatePath('/reports');
-  revalidatePath(`/invoices/${id}/edit`);
-  return { success: true };
 }
 
-export async function deleteInvoice(id: string) {
-  const db = await getDb();
-  const invoiceRef = doc(db, 'invoices', id);
-  await deleteDoc(invoiceRef);
+export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoice, 'id' | 'createdAt'>>): Promise<{success: boolean, error?: string}> {
+  try {
+    const db = await getDb();
+    const invoiceRef = doc(db, 'invoices', id);
 
-  revalidatePath('/');
-  revalidatePath('/reports');
-  return { success: true };
+    const grandTotal = invoiceData.items?.reduce((sum, item) => sum + (item.total || 0), 0);
+
+    const updateData: any = {
+        ...invoiceData,
+        date: Timestamp.fromDate(invoiceData.date as any),
+    };
+
+    if (grandTotal !== undefined) {
+        updateData.grandTotal = grandTotal;
+    }
+
+    await updateDoc(invoiceRef, updateData);
+
+    revalidatePath('/');
+    revalidatePath('/reports');
+    revalidatePath(`/invoices/${id}/edit`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating invoice: ", error);
+    return { success: false, error: "Không thể cập nhật hóa đơn. Vui lòng thử lại." };
+  }
+}
+
+export async function deleteInvoice(id: string): Promise<{success: boolean, error?: string}> {
+  try {
+    const db = await getDb();
+    const invoiceRef = doc(db, 'invoices', id);
+    await deleteDoc(invoiceRef);
+
+    revalidatePath('/');
+    revalidatePath('/reports');
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting invoice: ", error);
+    return { success: false, error: "Không thể xóa hóa đơn. Vui lòng thử lại." };
+  }
 }

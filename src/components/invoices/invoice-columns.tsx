@@ -72,9 +72,9 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
         }
         return (
             <InvoiceDetailsModal invoice={invoice}>
-              <span className="cursor-pointer underline decoration-dotted">
+              <button className="cursor-pointer underline decoration-dotted text-left">
                   {items.length} sản phẩm
-              </span>
+              </button>
             </InvoiceDetailsModal>
         )
     },
@@ -141,12 +141,12 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
       const { toast } = useToast();
 
       const handleDelete = async () => {
-        try {
-            await deleteInvoice(invoice.id);
+        const result = await deleteInvoice(invoice.id);
+        if (result.success) {
             toast({ title: "Thành công", description: "Đã xóa hóa đơn." });
             onDataChanged();
-        } catch (error) {
-            toast({ variant: 'destructive', title: "Lỗi", description: "Không thể xóa hóa đơn." });
+        } else {
+            toast({ variant: 'destructive', title: "Lỗi", description: result.error });
         }
       }
 
