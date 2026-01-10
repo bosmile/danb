@@ -310,15 +310,21 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                 <CardTitle>Danh sách sản phẩm</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+                 <div className="grid grid-cols-12 gap-x-4 gap-y-2 pb-2 border-b">
+                    <FormLabel className="col-span-12 sm:col-span-5">Sản phẩm</FormLabel>
+                    <FormLabel className="col-span-6 sm:col-span-2">Số lượng</FormLabel>
+                    <FormLabel className="col-span-6 sm:col-span-2">Đơn giá</FormLabel>
+                    <FormLabel className="col-span-12 sm:col-span-3">Tổng</FormLabel>
+                </div>
                  {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-x-2 gap-y-4 items-start p-3 border rounded-md relative">
-                         <div className="col-span-12 md:col-span-8">
+                    <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start pt-2">
+                        {/* Row 1: Product Name & Receiving Place */}
+                        <div className="col-span-12 md:col-span-5">
                             <FormField
                                 control={control}
                                 name={`items.${index}.productName`}
                                 render={({ field }) => (
                                     <FormItem>
-                                    <FormLabel>Sản phẩm</FormLabel>
                                     <FormControl>
                                         <ProductAutocomplete 
                                             value={field.value}
@@ -330,13 +336,59 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                                 )}
                             />
                         </div>
-                        <div className="col-span-12 md:col-span-4">
+
+                         <div className="col-span-12 md:col-span-7 grid grid-cols-10 gap-x-4">
+                            <div className="col-span-10 sm:col-span-3">
+                                <FormField
+                                    control={control}
+                                    name={`items.${index}.quantity`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormControl>
+                                            <Input type="number" step="any" placeholder="Số lượng" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'quantity')}} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="col-span-10 sm:col-span-3">
+                                <FormField
+                                    control={control}
+                                    name={`items.${index}.price`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormControl>
+                                            <Input type="number" placeholder="Đơn giá" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'price')}} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="col-span-10 sm:col-span-4">
+                                <FormField
+                                    control={control}
+                                    name={`items.${index}.total`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormControl>
+                                            <Input type="number" placeholder="Tổng" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'total')}} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                         </div>
+
+                        {/* Row 2: Receiving Place & Delete Button */}
+                        <div className="col-span-8 md:col-span-5">
                            <FormField
                               control={form.control}
                               name={`items.${index}.receivingPlace`}
                               render={({ field }) => (
                                   <FormItem>
-                                  <FormLabel>Nơi nhận</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                       <FormControl>
                                       <SelectTrigger>
@@ -353,63 +405,18 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                               )}
                           />
                         </div>
-                        <div className="col-span-4">
-                             <FormField
-                                control={control}
-                                name={`items.${index}.quantity`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Số lượng</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" step="any" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'quantity')}} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="col-span-8">
-                            <FormField
-                                control={control}
-                                name={`items.${index}.price`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Đơn giá</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'price')}} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                         <div className="col-span-10">
-                            <FormField
-                                control={control}
-                                name={`items.${index}.total`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Tổng</FormLabel>
-                                    <FormControl>
-                                         <Input type="number" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'total')}} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="col-span-2 flex items-end justify-end h-full">
+                        <div className="col-span-4 md:col-span-7 flex justify-end">
                             <Button
                                 type="button"
                                 variant="destructive"
                                 size="icon"
                                 onClick={() => remove(index)}
                                 disabled={fields.length <= 1}
-                                className="mt-auto"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
+                         {index < fields.length -1 && <div className="col-span-12 border-b pt-4"></div>}
                     </div>
                 ))}
                 <Button
@@ -440,3 +447,5 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
     </Form>
   );
 }
+
+    
