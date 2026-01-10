@@ -14,8 +14,16 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
   const { toast } = useToast();
   
   useEffect(() => {
-    const { id } = params;
-    async function fetchInvoice() {
+    const fetchInvoice = async () => {
+      // The params object is a Promise, so we need to await it.
+      const resolvedParams = await params;
+      const { id } = resolvedParams;
+
+      if (!id) {
+        setLoading(false);
+        return;
+      };
+
       setLoading(true);
       try {
         const invoice = await getInvoiceById(id);
@@ -29,14 +37,12 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
       } finally {
         setLoading(false);
       }
-    }
+    };
     
-    if (id) {
-        fetchInvoice();
-    }
+    fetchInvoice();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [params]);
 
   return (
     <div className="space-y-6">
