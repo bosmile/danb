@@ -8,6 +8,8 @@ export interface Product {
   id: string;
   name: string;
   createdAt: Timestamp;
+  totalQuantityPurchased?: number;
+  totalAmountSpent?: number;
 }
 
 export interface InvoiceItem {

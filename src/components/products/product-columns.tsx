@@ -27,6 +27,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 
+const currencyFormatter = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+}
+
 export const getProductColumns = (onDataChanged: () => void): ColumnDef<ProductSerializable>[] => {
   const ActionCell = ({ row }: { row: any }) => {
     const product = row.original;
@@ -34,9 +38,13 @@ export const getProductColumns = (onDataChanged: () => void): ColumnDef<ProductS
 
     const handleDelete = async () => {
       try {
-        await deleteProduct(product.id);
-        toast({ title: "Thành công", description: "Đã xóa sản phẩm." });
-        onDataChanged();
+        const result = await deleteProduct(product.id);
+        if (result.success) {
+            toast({ title: "Thành công", description: "Đã xóa sản phẩm." });
+            onDataChanged();
+        } else {
+             toast({ variant: 'destructive', title: "Lỗi", description: result.error });
+        }
       } catch (error: any) {
         toast({ variant: 'destructive', title: "Lỗi", description: error.message || "Không thể xóa sản phẩm." });
       }
@@ -97,6 +105,34 @@ export const getProductColumns = (onDataChanged: () => void): ColumnDef<ProductS
         </Button>
       ),
       cell: ({ row }) => <div>{row.getValue('name')}</div>,
+    },
+    {
+      accessorKey: 'totalQuantityPurchased',
+      header: ({ column }) => (
+        <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="w-full justify-end -mr-4"
+        >
+            Tổng SL đã mua
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div className="text-right">{row.getValue('totalQuantityPurchased') || 0}</div>,
+    },
+    {
+        accessorKey: 'totalAmountSpent',
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                className="w-full justify-end -mr-4"
+            >
+                Tổng tiền đã mua
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
+        cell: ({ row }) => <div className="text-right">{currencyFormatter(row.getValue('totalAmountSpent') || 0)}</div>,
     },
     {
       id: 'actions',

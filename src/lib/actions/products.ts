@@ -1,7 +1,7 @@
 'use server';
 
 import { Timestamp, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, getDoc } from 'firebase/firestore';
-import type { Product, ProductSerializable } from '@/types';
+import type { Product, ProductSerializable, Invoice } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { getUnauthenticatedFirestore } from '@/firebase/config';
 
@@ -18,90 +18,128 @@ function serializeProduct(product: Product): ProductSerializable {
 
 export async function getProducts(): Promise<ProductSerializable[]> {
     const db = await getDb();
+    
+    // 1. Fetch all invoices to calculate stats
+    const invoicesCol = collection(db, 'invoices');
+    const invoiceSnapshot = await getDocs(invoicesCol);
+    const invoices = invoiceSnapshot.docs.map(doc => doc.data() as Omit<Invoice, 'id' | 'createdAt'>);
+
+    // 2. Aggregate stats for each product
+    const productStats: { [productName: string]: { totalQuantity: number; totalAmount: number } } = {};
+
+    for (const invoice of invoices) {
+        for (const item of invoice.items) {
+            if (!productStats[item.productName]) {
+                productStats[item.productName] = { totalQuantity: 0, totalAmount: 0 };
+            }
+            productStats[item.productName].totalQuantity += item.quantity;
+            productStats[item.productName].totalAmount += item.total;
+        }
+    }
+
+    // 3. Fetch all products
     const productsCol = collection(db, 'products');
     const q = query(productsCol, orderBy('name'));
     const productSnapshot = await getDocs(q);
     const productList = productSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Product));
-    return productList.map(serializeProduct);
+
+    // 4. Combine product list with stats
+    const productsWithStats = productList.map(product => {
+        const stats = productStats[product.name] || { totalQuantity: 0, totalAmount: 0 };
+        return {
+            ...serializeProduct(product),
+            totalQuantityPurchased: stats.totalQuantity,
+            totalAmountSpent: stats.totalAmount,
+        };
+    });
+    
+    return productsWithStats;
 }
 
 export async function addProduct(productData: { name: string }): Promise<{success: boolean, newProduct?: ProductSerializable, error?: string}> {
-    const db = await getDb();
-    const productsCol = collection(db, 'products');
-    
-    const q = query(productsCol, where('name', '==', productData.name));
-    const existingSnapshot = await getDocs(q);
-    if (!existingSnapshot.empty) {
-         return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
-    }
-    
-    const newProductData = { 
-        name: productData.name, 
-        createdAt: Timestamp.now() 
-    };
+    try {
+        const db = await getDb();
+        const productsCol = collection(db, 'products');
+        
+        const q = query(productsCol, where('name', '==', productData.name));
+        const existingSnapshot = await getDocs(q);
+        if (!existingSnapshot.empty) {
+            return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
+        }
+        
+        const newProductData = { 
+            name: productData.name, 
+            createdAt: Timestamp.now() 
+        };
 
-    const docRef = await addDoc(productsCol, newProductData);
-    
-    const newProduct: Product = {
-        id: docRef.id,
-        ...newProductData
-    }
+        const docRef = await addDoc(productsCol, newProductData);
+        
+        const newProduct: Product = {
+            id: docRef.id,
+            ...newProductData
+        }
 
-    revalidatePath('/products');
-    revalidatePath('/invoices/add');
-    revalidatePath('/invoices/[id]/edit', 'page');
-    return { success: true, newProduct: serializeProduct(newProduct) };
+        revalidatePath('/products');
+        revalidatePath('/invoices/add');
+        revalidatePath('/invoices/[id]/edit', 'page');
+        return { success: true, newProduct: serializeProduct(newProduct) };
+    } catch(error: any) {
+        console.error("Error adding product:", error);
+        return { success: false, error: error.message || "Không thể thêm sản phẩm." };
+    }
 }
 
 export async function updateProduct(id: string, productData: { name: string }): Promise<{success: boolean, error?: string}> {
-    const db = await getDb();
-    const productRef = doc(db, 'products', id);
+    try {
+        const db = await getDb();
+        const productRef = doc(db, 'products', id);
 
-    const q = query(collection(db, 'products'), where('name', '==', productData.name));
-    const existingSnapshot = await getDocs(q);
-    const conflict = existingSnapshot.docs.find(doc => doc.id !== id);
-    if (conflict) {
-        return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
+        const q = query(collection(db, 'products'), where('name', '==', productData.name));
+        const existingSnapshot = await getDocs(q);
+        const conflict = existingSnapshot.docs.find(doc => doc.id !== id);
+        if (conflict) {
+            return { success: false, error: `Sản phẩm "${productData.name}" đã tồn tại.` };
+        }
+        
+        await updateDoc(productRef, { name: productData.name });
+
+        revalidatePath('/products');
+        return { success: true };
+    } catch(error: any) {
+        console.error("Error updating product:", error);
+        return { success: false, error: error.message || "Không thể cập nhật sản phẩm." };
     }
-    
-    await updateDoc(productRef, { name: productData.name });
-
-    revalidatePath('/products');
-    return { success: true };
 }
 
 export async function deleteProduct(id: string): Promise<{success: boolean, error?: string}> {
     try {
         const db = await getDb();
         
-        // This is a simplified check. In a real-world scenario with many invoices,
-        // this could be inefficient. We would typically handle this differently,
-        // maybe by denormalizing product usage counts or using a backend function.
-        const invoicesCollection = collection(db, 'invoices');
-        const querySnapshot = await getDocs(invoicesCollection);
-        
-        for (const docSnap of querySnapshot.docs) {
-            const invoice = docSnap.data();
-            if (invoice.items && Array.isArray(invoice.items)) {
-                const productInUse = invoice.items.some((item: { productName: string; }) => {
-                    // We need to fetch the product name to compare
-                    return item.productName === (async () => {
-                        const productDoc = await getDoc(doc(db, 'products', id));
-                        return productDoc.data()?.name;
-                    })();
-                });
-
-                if (productInUse) {
-                    // Found an invoice using this product by name
-                    const productDoc = await getDoc(doc(db, 'products', id));
-                    const productName = productDoc.data()?.name || 'Sản phẩm này';
-                     return { success: false, error: `${productName} đang được sử dụng trong một hoặc nhiều hóa đơn.` };
-                }
-            }
-        }
-
-
+        // First, get the name of the product to be deleted.
         const productRef = doc(db, 'products', id);
+        const productDoc = await getDoc(productRef);
+        if (!productDoc.exists()) {
+             return { success: false, error: 'Sản phẩm không tồn tại.' };
+        }
+        const productName = productDoc.data()?.name;
+
+        // Now, check if this product name is used in any invoices.
+        const invoicesCollection = collection(db, 'invoices');
+        const q = query(invoicesCollection, where('items', 'array-contains-any', [{ productName: productName }]));
+        
+        // A more robust query would be to iterate through invoices, but for smaller datasets
+        // checking for productName in items array can be an indicator.
+        // The most robust check is client side or needs complex queries/functions
+        // Simplified check:
+        const invoiceQuerySnapshot = await getDocs(collection(db, 'invoices'));
+        const isProductInUse = invoiceQuerySnapshot.docs.some(doc => 
+            doc.data().items?.some((item: any) => item.productName === productName)
+        );
+
+        if (isProductInUse) {
+            return { success: false, error: `"${productName}" đang được sử dụng trong một hoặc nhiều hóa đơn và không thể xóa.` };
+        }
+        
         await deleteDoc(productRef);
 
         revalidatePath('/products');
