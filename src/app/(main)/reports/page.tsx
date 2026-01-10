@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 import type { InvoiceSerializable, InvoiceCategory } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
 import { ReportsView } from '@/components/reports/reports-view';
-import { DatePicker } from '@/components/shared/date-picker';
 import { getInvoices } from '@/lib/actions/invoices';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ManualDateInput } from '@/components/shared/manual-date-input';
 
 type CategoryFilter = InvoiceCategory | 'ALL';
 
@@ -62,8 +62,8 @@ export default function ReportsPage() {
                 </SelectContent>
             </Select>
             <div className="flex items-center gap-2">
-                <DatePicker date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
-                <DatePicker date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+                <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
+                <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
             </div>
         </div>
       </PageHeader>

@@ -22,12 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2, Trash2 } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Invoice, InvoiceSerializable } from '@/types';
 import { ProductAutocomplete } from './product-autocomplete';
@@ -35,6 +30,7 @@ import { addInvoice, updateInvoice } from '@/lib/actions/invoices';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Textarea } from '../ui/textarea';
 import { Skeleton } from '../ui/skeleton';
+import { ManualDateInput } from '../shared/manual-date-input';
 
 const invoiceItemSchema = z.object({
     productName: z.string().min(1, { message: 'Tên sản phẩm không được để trống.' }),
@@ -243,38 +239,15 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                 name="date"
                 render={({ field }) => (
                     <FormItem className="flex flex-col">
-                    <FormLabel>Ngày</FormLabel>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <FormControl>
-                            <Button
-                            variant={'outline'}
-                            className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                            )}
-                            >
-                            {field.value ? (
-                                format(field.value, 'PPP', { locale: vi })
-                            ) : (
-                                <span>Chọn ngày</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                        </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                            initialFocus
-                            locale={vi}
+                      <FormLabel>Ngày</FormLabel>
+                      <FormControl>
+                        <ManualDateInput
+                          date={field.value}
+                          setDate={field.onChange}
+                          placeholder="Nhập ngày (ddmmyy)"
                         />
-                        </PopoverContent>
-                    </Popover>
-                    <FormMessage />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                 )}
                 />

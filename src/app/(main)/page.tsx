@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import type { InvoiceSerializable } from '@/types';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatsCards } from '@/components/dashboard/stats-cards';
-import { DatePicker } from '@/components/shared/date-picker';
 import { getInvoices } from '@/lib/actions/invoices';
 import { InvoiceTable } from '@/components/invoices/invoice-table';
 import { startOfMonth, endOfMonth } from 'date-fns';
@@ -13,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
+import { ManualDateInput } from '@/components/shared/manual-date-input';
 
 export default function DashboardPage() {
   const [invoices, setInvoices] = useState<InvoiceSerializable[]>([]);
@@ -64,8 +64,8 @@ export default function DashboardPage() {
       <PageHeader title="Trang chủ" description="Tổng quan về các hóa đơn chi tiêu.">
         <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
-              <DatePicker date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
-              <DatePicker date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+              <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
+              <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
             </div>
             <Button asChild>
                 <Link href="/invoices/add">
