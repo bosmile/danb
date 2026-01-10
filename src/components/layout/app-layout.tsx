@@ -17,8 +17,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger className="md:hidden" />
           </div>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
+        <SidebarContent className="relative">
+          {/* Background Image */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center z-0"
+            style={{backgroundImage: "url('https://images.unsplash.com/photo-1599329388339-e99c1c38a46f?q=80&w=1974&auto=format&fit=crop')"}}
+            data-ai-hint="avocado fruit"
+          ></div>
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-0"></div>
+          {/* Navigation */}
+          <div className="relative z-10">
+            <SidebarNav />
+          </div>
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
