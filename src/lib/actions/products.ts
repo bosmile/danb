@@ -4,7 +4,7 @@ import { Timestamp, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, quer
 import type { Product, ProductSerializable } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { getUnauthenticatedFirestore } from '@/firebase/config';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 async function getDb() {
