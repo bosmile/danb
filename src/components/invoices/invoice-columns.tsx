@@ -73,9 +73,9 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
              <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <span className="cursor-pointer underline decoration-dotted">
+                       <Link href={`/invoices/${row.original.id}/edit`} className="cursor-pointer underline decoration-dotted">
                             {items.length} sản phẩm
-                        </span>
+                        </Link>
                     </TooltipTrigger>
                     <TooltipContent>
                         <ul>
