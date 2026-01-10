@@ -31,7 +31,7 @@ export interface Invoice {
 }
 
 // For client-side rendering where Timestamps are converted to strings or numbers
-export type InvoiceSerializable = Omit<Invoice, 'date' | 'createdAt' | 'receivingPlace'> & {
+export type InvoiceSerializable = Omit<Invoice, 'date' | 'createdAt'> & {
   date: string;
   createdAt: string;
 };

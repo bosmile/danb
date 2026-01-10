@@ -29,7 +29,7 @@ import {
 import { deleteInvoice } from '@/lib/actions/invoices';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { InvoiceDetailsModal } from './invoice-details-modal';
 
 const CategoryBadge = ({ category }: { category: InvoiceSerializable['category'] }) => {
     const variant: "default" | "secondary" | "destructive" =
@@ -63,6 +63,7 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     header: 'Sản phẩm',
     cell: ({ row }) => {
         const items = row.original.items || [];
+        const invoice = row.original;
         if (items.length === 0) {
             return <span>-</span>;
         }
@@ -70,22 +71,11 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
             return <span>{items[0].productName}</span>;
         }
         return (
-             <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                       <Link href={`/invoices/${row.original.id}/edit`} className="cursor-pointer underline decoration-dotted">
-                            {items.length} sản phẩm
-                        </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <ul>
-                            {items.map((item, index) => (
-                                <li key={index}>- {item.productName} (x{item.quantity})</li>
-                            ))}
-                        </ul>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+            <InvoiceDetailsModal invoice={invoice}>
+              <span className="cursor-pointer underline decoration-dotted">
+                  {items.length} sản phẩm
+              </span>
+            </InvoiceDetailsModal>
         )
     },
     filterFn: (row, columnId, filterValue) => {
