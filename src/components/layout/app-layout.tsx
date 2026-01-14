@@ -1,4 +1,4 @@
-import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarTrigger } from '@/components/ui/sidebar';
 import { MobileNav } from './mobile-nav';
 import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -9,15 +9,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar className="print-hidden">
-        <SidebarHeader className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Logo className="h-8 w-8" />
-              <h1 className="text-xl font-bold font-headline">DỰ ÁN NUÔI BƠ</h1>
-            </div>
-            <SidebarTrigger className="md:hidden" />
-          </div>
-        </SidebarHeader>
         <SidebarContent>
           {/* Sidebar content is removed as per request */}
         </SidebarContent>
