@@ -1,8 +1,9 @@
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarTrigger } from '@/components/ui/sidebar';
-import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { MobileNav } from './mobile-nav';
 import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { HeaderNav } from './header-nav';
+import Link from 'next/link';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,26 +18,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger className="md:hidden" />
           </div>
         </SidebarHeader>
-        <SidebarContent className="relative">
-          {/* Background Image */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center z-0"
-            style={{backgroundImage: "url('https://images.unsplash.com/photo-1599329388339-e99c1c38a46f?q=80&w=1974&auto=format&fit=crop')"}}
-            data-ai-hint="avocado fruit"
-          ></div>
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-0"></div>
-          {/* Navigation */}
-          <div className="relative z-10">
-            <SidebarNav />
-          </div>
+        <SidebarContent>
+          {/* Sidebar content is removed as per request */}
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 md:justify-end print-hidden">
-          <SidebarTrigger className="flex md:hidden" />
-          <div className="flex-1 md:hidden">
-            {/* Mobile-specific header content can go here if needed */}
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 print-hidden">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="flex md:hidden" />
+            <Link href="/" className="items-center gap-2 hidden md:flex">
+              <Logo className="h-8 w-8" />
+              <h1 className="text-lg font-bold font-headline hidden lg:block">DỰ ÁN NUÔI BƠ</h1>
+            </Link>
+            <HeaderNav className="hidden md:flex" />
           </div>
           <ThemeToggle />
         </header>
