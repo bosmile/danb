@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { ExportButtons } from "./export-buttons";
+import { Textarea } from "../ui/textarea";
 
 interface ReportsViewProps {
     allInvoicesData: InvoiceSerializable[];
@@ -199,6 +200,15 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
                 </TableFooter>
             </Table>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="print-hidden">
+        <CardHeader>
+            <CardTitle>Ghi chú</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <Textarea placeholder="Thêm ghi chú cho báo cáo..." />
         </CardContent>
       </Card>
     </div>
