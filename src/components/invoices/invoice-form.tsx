@@ -28,7 +28,6 @@ import type { Invoice, InvoiceSerializable } from '@/types';
 import { ProductAutocomplete } from './product-autocomplete';
 import { addInvoice, updateInvoice } from '@/lib/actions/invoices';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Textarea } from '../ui/textarea';
 import { Skeleton } from '../ui/skeleton';
 import { ManualDateInput } from '../shared/manual-date-input';
 
@@ -54,7 +53,6 @@ const formSchema = z.object({
     required_error: 'Vui lòng chọn người mua.',
   }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
-  notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, { message: 'Hóa đơn phải có ít nhất một sản phẩm.' }),
   grandTotal: z.coerce.number(),
 });
@@ -77,7 +75,6 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
       category: 'BIGC',
       buyer: 'Hà',
       date: new Date(),
-      notes: '',
       items: [{ productName: '', quantity: 1, price: 0, total: 0, receivingPlace: 'NĐ' }],
       grandTotal: 0
     },
@@ -254,21 +251,6 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                     </FormItem>
                 )}
                 />
-                 <div className="md:col-span-2">
-                     <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Ghi chú</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="Thêm ghi chú cho hóa đơn..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                </div>
             </CardContent>
         </Card>
 
@@ -418,3 +400,5 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
     </Form>
   );
 }
+
+    

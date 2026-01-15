@@ -57,12 +57,6 @@ export function InvoiceDetailsModal({ invoice, children }: InvoiceDetailsModalPr
                 <p className="font-medium text-muted-foreground">Tổng cộng</p>
                 <p className="font-bold">{currencyFormatter(invoice.grandTotal)}</p>
             </div>
-            {invoice.notes && (
-                 <div className="col-span-full">
-                    <p className="font-medium text-muted-foreground">Ghi chú</p>
-                    <p className="whitespace-pre-wrap">{invoice.notes}</p>
-                </div>
-            )}
         </div>
 
         <Separator />
@@ -104,3 +98,5 @@ export function InvoiceDetailsModal({ invoice, children }: InvoiceDetailsModalPr
     </Dialog>
   );
 }
+
+    

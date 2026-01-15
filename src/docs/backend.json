@@ -79,10 +79,6 @@
             "description": "The person who made the purchase.",
             "enum": ["Hà", "Hằng"]
         },
-        "notes": {
-            "type": "string",
-            "description": "Additional notes for the invoice."
-        },
         "items": {
             "type": "array",
             "description": "A list of items included in the invoice.",
@@ -160,3 +156,5 @@
     "reasoning": "The Firestore structure is designed to manage products and invoices for the InvoiceFlow application. It prioritizes authorization independence and supports the application's core features, including dashboard summaries, invoice creation, product management, and reporting. The structure is segregated into distinct collections for products and invoices, ensuring a homogeneous security posture for each.\n\nProducts are stored in a simple collection, `/products`, and invoices are stored in `/invoices`. No authorization is required besides authentication since all users can access this data. This structure facilitates straightforward read operations (QAPs) for displaying products in the autocomplete dropdown and listing invoices in the table view. The decision to store invoices at the root allows for easy querying of all invoices without complex rule logic.\n\nSpecifically, the structure achieves Authorization Independence by avoiding any hierarchical dependencies. All necessary data for displaying and managing these entities exists within each document, removing the need for `get()` calls in the security rules.\n\nQAPs are satisfied through structural segregation. List operations on `/products` and `/invoices` are inherently secure because the application logic does not require any filtering based on user roles or ownership within the rules themselves. Security rules can permit list operations based solely on authentication status, if required, without needing to inspect the content of the documents."
   }
 }
+
+    

@@ -25,7 +25,6 @@ export interface Invoice {
   date: Timestamp;
   category: InvoiceCategory;
   buyer: Buyer;
-  notes?: string;
   items: InvoiceItem[];
   grandTotal: number;
   imageUrl?: string;
@@ -41,3 +40,5 @@ export type InvoiceSerializable = Omit<Invoice, 'date' | 'createdAt'> & {
 export type ProductSerializable = Omit<Product, 'createdAt'> & {
   createdAt: string;
 };
+
+    
