@@ -61,7 +61,7 @@ export async function getInvoiceById(id: string): Promise<InvoiceSerializable | 
     }
 }
 
-export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt'>): Promise<{success: boolean, error?: string}> {
+export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'imageUrl'>): Promise<{success: boolean, error?: string}> {
   try {
     const db = await getDb();
 
@@ -72,7 +72,7 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt'>)
       date: Timestamp.fromDate(invoiceData.date as any),
       grandTotal: grandTotal,
       createdAt: Timestamp.now(),
-      imageUrl: invoiceData.imageUrl || 'https://picsum.photos/seed/placeholder/400/600',
+      imageUrl: 'https://picsum.photos/seed/placeholder/400/600',
     };
 
     await addDoc(collection(db, 'invoices'), newInvoice);

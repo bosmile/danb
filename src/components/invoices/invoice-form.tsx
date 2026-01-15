@@ -57,8 +57,6 @@ const formSchema = z.object({
   notes: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, { message: 'Hóa đơn phải có ít nhất một sản phẩm.' }),
   grandTotal: z.coerce.number(),
-  imageUrl: z.string().optional(),
-  imageFile: z.any().optional(),
 });
 
 type InvoiceFormData = z.infer<typeof formSchema>;
@@ -145,7 +143,6 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
       const invoiceData = {
           ...values,
           date: values.date,
-          imageUrl: values.imageUrl,
           grandTotal: values.items.reduce((sum, item) => sum + item.total, 0),
       };
       
@@ -257,15 +254,6 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                     </FormItem>
                 )}
                 />
-                 <div className="md:col-span-2">
-                    <FormItem>
-                        <FormLabel>Ảnh hóa đơn</FormLabel>
-                        <FormControl>
-                            <Input type="file" accept="image/*" />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                </div>
                  <div className="md:col-span-2">
                      <FormField
                         control={form.control}
