@@ -203,7 +203,7 @@ export function ReportsView({ allInvoicesData }: ReportsViewProps) {
         </CardContent>
       </Card>
 
-      <Card className="print-hidden">
+      <Card>
         <CardHeader>
             <CardTitle>Ghi chú</CardTitle>
         </CardHeader>
