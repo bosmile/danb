@@ -15,13 +15,17 @@ interface ManualDateInputProps {
 
 export function ManualDateInput({ date, setDate, placeholder, className }: ManualDateInputProps) {
   const [inputValue, setInputValue] = React.useState('');
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   // When the date prop changes from outside, update the input
+  // BUT, do not update if the input is currently focused. This prevents overwriting user input.
   React.useEffect(() => {
-    if (date) {
-      setInputValue(format(date, 'dd/MM/yyyy'));
-    } else {
-      setInputValue('');
+    if (document.activeElement !== inputRef.current) {
+        if (date) {
+            setInputValue(format(date, 'dd/MM/yyyy'));
+        } else {
+            setInputValue('');
+        }
     }
   }, [date]);
 
@@ -35,31 +39,25 @@ export function ManualDateInput({ date, setDate, placeholder, className }: Manua
       // Check if the parsed date is valid
       if (!isNaN(parsedDate.getTime())) {
         setDate(parsedDate);
-        setInputValue(format(parsedDate, 'dd/MM/yyyy'));
+        // Do NOT reformat here. Let the user continue typing if they want.
+        // Let onBlur handle the final formatting.
+      } else {
+        // If the 6-digit string is not a valid date, unset the date in parent
+        setDate(undefined);
       }
     } else if (value === '') {
+      setDate(undefined);
+    } else {
+      // If the input is incomplete, the date is not yet valid
       setDate(undefined);
     }
   };
 
   const handleBlur = () => {
-    // On blur, if the input is not a valid formatted date, reset to the last valid date or empty
+    // When the user leaves the input, format it nicely based on the current valid 'date' state.
+    // If the input was invalid, it will revert to the last valid date or become empty.
     if (date) {
-      const formatted = format(date, 'dd/MM/yyyy');
-      if (inputValue !== formatted) {
-          // Check if it's a 6 digit entry that hasn't been parsed yet
-          if(inputValue.length === 6) {
-             const parsedDate = parse(inputValue, 'ddMMyy', new Date());
-             if (!isNaN(parsedDate.getTime())) {
-                setDate(parsedDate);
-                setInputValue(format(parsedDate, 'dd/MM/yyyy'));
-             } else {
-                setInputValue(formatted);
-             }
-          } else {
-            setInputValue(formatted);
-          }
-      }
+      setInputValue(format(date, 'dd/MM/yyyy'));
     } else {
       setInputValue('');
     }
@@ -76,6 +74,7 @@ export function ManualDateInput({ date, setDate, placeholder, className }: Manua
     <div className={cn('relative w-full', className)}>
       <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
+        ref={inputRef}
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleBlur}
