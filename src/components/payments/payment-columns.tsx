@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import type { PaymentSerializable } from '@/types';
 import { format } from 'date-fns';
-import { ArrowUpDown, MoreHorizontal, Eye, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -34,27 +34,6 @@ const getPaymentStatus = (paidAmount: number, totalAmount: number): { text: stri
 };
 
 export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentSerializable>[] => [
-  {
-    id: 'expander',
-    header: () => null,
-    cell: ({ row }) => {
-      return (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={row.getToggleExpandedHandler()}
-          className="h-8 w-8"
-        >
-          {row.getIsExpanded() ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-          <span className="sr-only">Toggle row</span>
-        </Button>
-      );
-    },
-  },
   {
     accessorKey: 'endDate',
     header: ({ column }) => (

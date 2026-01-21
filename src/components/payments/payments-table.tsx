@@ -8,8 +8,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  getExpandedRowModel,
-  type ExpandedState,
 } from '@tanstack/react-table';
 
 import {
@@ -32,19 +30,15 @@ interface PaymentsTableProps {
 
 export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([{ id: 'endDate', desc: true }]);
-  const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const columns = React.useMemo(() => getPaymentColumns(onDataChanged), [onDataChanged]);
 
   const table = useReactTable({
     data,
     columns,
-    getRowId: (row) => row.id,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onExpandedChange: setExpanded,
-    getExpandedRowModel: getExpandedRowModel(),
     initialState: {
         pagination: {
             pageSize: 5,
@@ -52,7 +46,6 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
     },
     state: {
       sorting,
-      expanded,
     },
   });
 
@@ -86,8 +79,7 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
                       </TableCell>
                     ))}
                   </TableRow>
-                  {row.getIsExpanded() && (
-                    <TableRow>
+                  <TableRow className="bg-muted/30 hover:bg-muted/30">
                       <TableCell colSpan={columns.length}>
                         <PaymentTransactionForm
                           payment={row.original}
@@ -95,7 +87,6 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
                         />
                       </TableCell>
                     </TableRow>
-                  )}
                 </React.Fragment>
               ))
             ) : (
