@@ -95,7 +95,7 @@ function serializePayment(payment: Payment): PaymentSerializable {
         startDate: payment.startDate.toDate().toISOString(),
         endDate: payment.endDate.toDate().toISOString(),
         createdAt: payment.createdAt.toDate().toISOString(),
-        transactions: payment.transactions.map(t => ({
+        transactions: (payment.transactions || []).map(t => ({
             ...t,
             date: t.date.toDate().toISOString(),
         })),
@@ -168,7 +168,7 @@ export async function addTransactionToPayment(
             note: transactionData.note || '',
         };
 
-        const updatedTransactions = [...payment.transactions, newTransaction];
+        const updatedTransactions = [...(payment.transactions || []), newTransaction];
         await updateDoc(paymentRef, { transactions: updatedTransactions });
 
         const paidAmount = updatedTransactions.reduce((acc, t) => acc + t.amount, 0);
@@ -193,7 +193,7 @@ export async function deleteTransaction(paymentId: string, transactionId: string
         }
         
         const payment = paymentSnap.data() as Payment;
-        const updatedTransactions = payment.transactions.filter(t => t.id !== transactionId);
+        const updatedTransactions = (payment.transactions || []).filter(t => t.id !== transactionId);
 
         await updateDoc(paymentRef, { transactions: updatedTransactions });
         
