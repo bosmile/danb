@@ -37,6 +37,8 @@ export function ManualDateInput({ date, setDate, placeholder, className }: Manua
         setDate(parsedDate);
         setInputValue(format(parsedDate, 'dd/MM/yyyy'));
       }
+    } else if (value === '') {
+      setDate(undefined);
     }
   };
 

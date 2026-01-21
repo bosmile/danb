@@ -51,7 +51,6 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
     const form = useForm<TransactionFormData>({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            date: new Date(),
             amount: remainingAmount > 0 ? remainingAmount : 0,
             note: '',
         }
@@ -64,7 +63,7 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
             if (result.success) {
                 toast({ title: 'Thành công', description: 'Đã thêm thanh toán.' });
                 onDataChanged();
-                form.reset({ date: new Date(), amount: result.newRemainingAmount, note: '' });
+                form.reset({ amount: result.newRemainingAmount || 0, note: '' });
             } else {
                 throw new Error(result.error);
             }
@@ -91,8 +90,20 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
         }
     };
 
+    const handleOpenChange = (isOpen: boolean) => {
+        if (isOpen) {
+            const currentPaidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
+            const currentRemainingAmount = payment.totalAmount - currentPaidAmount;
+            form.reset({
+                amount: currentRemainingAmount > 0 ? currentRemainingAmount : 0,
+                note: ''
+            });
+        }
+        setOpen(isOpen);
+    }
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
@@ -124,7 +135,7 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
                             <FormField name="date" control={form.control} render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Ngày trả</FormLabel>
-                                    <FormControl><ManualDateInput date={field.value} setDate={field.onChange} /></FormControl>
+                                    <FormControl><ManualDateInput date={field.value} setDate={field.onChange} placeholder="Nhập ngày (ddmmyy)" /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )} />
