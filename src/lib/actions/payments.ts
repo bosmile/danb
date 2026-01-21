@@ -10,6 +10,7 @@ import {
   doc,
   query,
   orderBy,
+  getDoc,
 } from 'firebase/firestore';
 import { getUnauthenticatedFirestore } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
@@ -86,6 +87,16 @@ const generateReportSnapshot = async (startDate: Date, endDate: Date) => {
     return { reportData, grandTotal };
 };
 
+function serializePayment(payment: Payment): PaymentSerializable {
+    return {
+        ...payment,
+        startDate: payment.startDate.toDate().toISOString(),
+        endDate: payment.endDate.toDate().toISOString(),
+        createdAt: payment.createdAt.toDate().toISOString(),
+        paidAt: payment.paidAt?.toDate().toISOString(),
+    };
+}
+
 
 export async function getPayments(): Promise<PaymentSerializable[]> {
     const db = await getUnauthenticatedFirestore();
@@ -94,16 +105,10 @@ export async function getPayments(): Promise<PaymentSerializable[]> {
     const snapshot = await getDocs(q);
     const paymentsList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Payment));
 
-    return paymentsList.map(payment => ({
-        ...payment,
-        startDate: payment.startDate.toDate().toISOString(),
-        endDate: payment.endDate.toDate().toISOString(),
-        createdAt: payment.createdAt.toDate().toISOString(),
-        paidAt: payment.paidAt?.toDate().toISOString(),
-    }));
+    return paymentsList.map(serializePayment);
 }
 
-export async function createPaymentForPeriod(startDate: Date, endDate: Date): Promise<{ success: boolean, error?: string }> {
+export async function createPaymentForPeriod(startDate: Date, endDate: Date): Promise<{ success: boolean; newPayment?: PaymentSerializable; error?: string }> {
     try {
         const db = await getUnauthenticatedFirestore();
         const { reportData, grandTotal } = await generateReportSnapshot(startDate, endDate);
@@ -112,7 +117,7 @@ export async function createPaymentForPeriod(startDate: Date, endDate: Date): Pr
             return { success: false, error: 'Không có dữ liệu trong khoảng thời gian đã chọn để tạo kỳ thanh toán.' };
         }
 
-        const newPayment = {
+        const newPaymentData = {
             startDate: Timestamp.fromDate(startDate),
             endDate: Timestamp.fromDate(endDate),
             isPaid: false,
@@ -121,10 +126,16 @@ export async function createPaymentForPeriod(startDate: Date, endDate: Date): Pr
             createdAt: Timestamp.now(),
         };
 
-        await addDoc(collection(db, 'payments'), newPayment);
+        const docRef = await addDoc(collection(db, 'payments'), newPaymentData);
+
+        const newPayment: Payment = {
+            id: docRef.id,
+            ...newPaymentData,
+            // paidAt is optional and not present on creation
+        };
 
         revalidatePath('/payments');
-        return { success: true };
+        return { success: true, newPayment: serializePayment(newPayment) };
     } catch (e: any) {
         console.error("Error creating payment period: ", e);
         return { success: false, error: e.message || "Không thể tạo kỳ thanh toán." };

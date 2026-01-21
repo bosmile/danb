@@ -11,6 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { getPayments, createPaymentForPeriod } from '@/lib/actions/payments';
 import type { PaymentSerializable } from '@/types';
 import { PaymentsTable } from '@/components/payments/payments-table';
+import { PaymentReportModal } from '@/components/payments/payment-report-modal';
 
 export default function PaymentsPage() {
   const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(new Date()));
@@ -18,6 +19,7 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<PaymentSerializable[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [newlyCreatedPayment, setNewlyCreatedPayment] = useState<PaymentSerializable | null>(null);
   const { toast } = useToast();
 
   const refreshPayments = async () => {
@@ -44,9 +46,10 @@ export default function PaymentsPage() {
     setIsCreating(true);
     try {
       const result = await createPaymentForPeriod(startDate, endDate);
-      if (result.success) {
+      if (result.success && result.newPayment) {
         toast({ title: 'Thành công', description: 'Đã lưu kỳ thanh toán mới.' });
         await refreshPayments();
+        setNewlyCreatedPayment(result.newPayment);
       } else {
         throw new Error(result.error);
       }
@@ -94,6 +97,17 @@ export default function PaymentsPage() {
         </CardContent>
       </Card>
 
+      {newlyCreatedPayment && (
+        <PaymentReportModal 
+            payment={newlyCreatedPayment}
+            open={!!newlyCreatedPayment}
+            onOpenChange={(isOpen) => {
+                if (!isOpen) {
+                    setNewlyCreatedPayment(null);
+                }
+            }}
+        />
+      )}
     </div>
   );
 }

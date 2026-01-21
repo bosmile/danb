@@ -24,14 +24,16 @@ import { ExportButtons } from '../reports/export-buttons';
 
 type PaymentReportModalProps = {
   payment: PaymentSerializable;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
 
-export function PaymentReportModal({ payment, children }: PaymentReportModalProps) {
+export function PaymentReportModal({ payment, children, open, onOpenChange }: PaymentReportModalProps) {
   const reportData = useMemo(() => {
     try {
         return JSON.parse(payment.reportSnapshot);
@@ -61,8 +63,8 @@ export function PaymentReportModal({ payment, children }: PaymentReportModalProp
   const filename = `ThanhToan_${format(new Date(payment.startDate), 'ddMMyy')}-${format(new Date(payment.endDate), 'ddMMyy')}`;
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Chi tiết kỳ thanh toán</DialogTitle>
