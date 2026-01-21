@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,16 +45,26 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
 
-    const paidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
-    const remainingAmount = payment.totalAmount - paidAmount;
-
     const form = useForm<TransactionFormData>({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            amount: remainingAmount > 0 ? remainingAmount : 0,
+            amount: 0,
+            date: undefined,
             note: '',
         }
     });
+
+    useEffect(() => {
+        if (open) {
+            const paidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
+            const remainingAmount = payment.totalAmount - paidAmount;
+            form.reset({
+                amount: remainingAmount > 0 ? remainingAmount : 0,
+                date: undefined,
+                note: ''
+            });
+        }
+    }, [open, payment, form]);
 
     const onSubmit = async (data: TransactionFormData) => {
         setIsSubmitting(true);
@@ -63,7 +73,6 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
             if (result.success) {
                 toast({ title: 'Thành công', description: 'Đã thêm thanh toán.' });
                 onDataChanged();
-                form.reset({ amount: result.newRemainingAmount || 0, note: '' });
             } else {
                 throw new Error(result.error);
             }
@@ -80,7 +89,6 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
             if (result.success) {
                 toast({ title: 'Thành công', description: 'Đã xóa thanh toán.' });
                 onDataChanged();
-                 // After deleting, we need to manually close and reopen the dialog to get fresh `payment` prop data
                 setOpen(false);
             } else {
                 throw new Error(result.error);
@@ -91,16 +99,11 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
     };
 
     const handleOpenChange = (isOpen: boolean) => {
-        if (isOpen) {
-            const currentPaidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
-            const currentRemainingAmount = payment.totalAmount - currentPaidAmount;
-            form.reset({
-                amount: currentRemainingAmount > 0 ? currentRemainingAmount : 0,
-                note: ''
-            });
-        }
         setOpen(isOpen);
     }
+    
+    const paidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
+    const remainingAmount = payment.totalAmount - paidAmount;
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
