@@ -38,6 +38,7 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
   const table = useReactTable({
     data,
     columns,
+    getRowId: (row) => row.id,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -109,7 +110,7 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} kỳ thanh toán.
+          {table.getRowModel().rows.length} kỳ thanh toán.
         </div>
         <div className="space-x-2">
           <Button
