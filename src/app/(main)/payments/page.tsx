@@ -40,6 +40,7 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     refreshPayments();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const summaryStats = useMemo(() => {
@@ -48,17 +49,16 @@ export default function PaymentsPage() {
     }
 
     const totalDebt = payments.reduce((acc, p) => acc + p.totalAmount, 0);
-    
-    const paidPayments = payments.filter(p => p.isPaid);
-    const totalPaid = paidPayments.reduce((acc, p) => acc + p.totalAmount, 0);
+
+    const allTransactions = payments.flatMap(p => p.transactions);
+    const totalPaid = allTransactions.reduce((acc, t) => acc + t.amount, 0);
     
     const remaining = totalDebt - totalPaid;
     
-    const lastPaidPayment = paidPayments
-        .filter(p => p.paidAt) // ensure paidAt exists
-        .sort((a, b) => new Date(b.paidAt!).getTime() - new Date(a.paidAt!).getTime())[0];
+    const lastPaidTransaction = allTransactions
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
     
-    const lastPaidDate = lastPaidPayment ? new Date(lastPaidPayment.paidAt!) : null;
+    const lastPaidDate = lastPaidTransaction ? new Date(lastPaidTransaction.date) : null;
 
     return { totalDebt, totalPaid, remaining, lastPaidDate };
   }, [payments]);

@@ -11,11 +11,13 @@ import {
   query,
   orderBy,
   getDoc,
+  FieldValue,
 } from 'firebase/firestore';
 import { getUnauthenticatedFirestore } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
-import type { Payment, PaymentSerializable, Invoice } from '@/types';
-import { getInvoices } from './invoices'; // We can reuse this
+import type { Payment, PaymentSerializable, Invoice, PaymentTransaction, PaymentTransactionSerializable } from '@/types';
+import { getInvoices } from './invoices';
+import { randomUUID } from 'crypto';
 
 // This function is similar to the logic in ReportsView
 const generateReportSnapshot = async (startDate: Date, endDate: Date) => {
@@ -93,7 +95,10 @@ function serializePayment(payment: Payment): PaymentSerializable {
         startDate: payment.startDate.toDate().toISOString(),
         endDate: payment.endDate.toDate().toISOString(),
         createdAt: payment.createdAt.toDate().toISOString(),
-        paidAt: payment.paidAt?.toDate().toISOString(),
+        transactions: payment.transactions.map(t => ({
+            ...t,
+            date: t.date.toDate().toISOString(),
+        })),
     };
 }
 
@@ -120,18 +125,17 @@ export async function createPaymentForPeriod(startDate: Date, endDate: Date): Pr
         const newPaymentData = {
             startDate: Timestamp.fromDate(startDate),
             endDate: Timestamp.fromDate(endDate),
-            isPaid: false,
             totalAmount: grandTotal,
             reportSnapshot: JSON.stringify(reportData),
             createdAt: Timestamp.now(),
+            transactions: [], // Initialize with empty transactions
         };
 
         const docRef = await addDoc(collection(db, 'payments'), newPaymentData);
 
         const newPayment: Payment = {
             id: docRef.id,
-            ...newPaymentData,
-            // paidAt is optional and not present on creation
+            ...newPaymentData
         };
 
         revalidatePath('/payments');
@@ -142,25 +146,62 @@ export async function createPaymentForPeriod(startDate: Date, endDate: Date): Pr
     }
 }
 
-export async function updatePaymentStatus(id: string, isPaid: boolean): Promise<{ success: boolean, error?: string }> {
+export async function addTransactionToPayment(
+    paymentId: string,
+    transactionData: { amount: number; date: Date; note?: string }
+): Promise<{ success: boolean; error?: string; newRemainingAmount?: number }> {
     try {
         const db = await getUnauthenticatedFirestore();
-        const paymentRef = doc(db, 'payments', id);
-        
-        const updateData: { isPaid: boolean, paidAt?: Timestamp | null } = { isPaid };
-        if (isPaid) {
-            updateData.paidAt = Timestamp.now();
-        } else {
-            updateData.paidAt = null;
+        const paymentRef = doc(db, 'payments', paymentId);
+        const paymentSnap = await getDoc(paymentRef);
+
+        if (!paymentSnap.exists()) {
+            throw new Error('Không tìm thấy kỳ thanh toán.');
         }
 
-        await updateDoc(paymentRef, updateData);
+        const payment = paymentSnap.data() as Payment;
+        
+        const newTransaction: PaymentTransaction = {
+            id: randomUUID(),
+            date: Timestamp.fromDate(transactionData.date),
+            amount: transactionData.amount,
+            note: transactionData.note || '',
+        };
 
+        const updatedTransactions = [...payment.transactions, newTransaction];
+        await updateDoc(paymentRef, { transactions: updatedTransactions });
+
+        const paidAmount = updatedTransactions.reduce((acc, t) => acc + t.amount, 0);
+        const newRemainingAmount = payment.totalAmount - paidAmount;
+        
+        revalidatePath('/payments');
+        return { success: true, newRemainingAmount };
+
+    } catch(e: any) {
+        return { success: false, error: e.message || 'Không thể thêm thanh toán.' };
+    }
+}
+
+export async function deleteTransaction(paymentId: string, transactionId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const db = await getUnauthenticatedFirestore();
+        const paymentRef = doc(db, 'payments', paymentId);
+        const paymentSnap = await getDoc(paymentRef);
+
+        if (!paymentSnap.exists()) {
+            throw new Error('Không tìm thấy kỳ thanh toán.');
+        }
+        
+        const payment = paymentSnap.data() as Payment;
+        const updatedTransactions = payment.transactions.filter(t => t.id !== transactionId);
+
+        await updateDoc(paymentRef, { transactions: updatedTransactions });
+        
         revalidatePath('/payments');
         return { success: true };
+
     } catch (e: any) {
-        console.error("Error updating payment status: ", e);
-        return { success: false, error: "Không thể cập nhật trạng thái thanh toán." };
+        return { success: false, error: e.message || 'Không thể xóa thanh toán.' };
     }
 }
 

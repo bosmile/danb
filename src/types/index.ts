@@ -41,20 +41,30 @@ export type ProductSerializable = Omit<Product, 'createdAt'> & {
   createdAt: string;
 };
 
+export interface PaymentTransaction {
+  id: string;
+  date: Timestamp;
+  amount: number;
+  note?: string;
+}
+
+export type PaymentTransactionSerializable = Omit<PaymentTransaction, 'date'> & {
+  date: string;
+};
+
 export interface Payment {
   id: string;
   startDate: Timestamp;
   endDate: Timestamp;
-  isPaid: boolean;
   totalAmount: number;
+  transactions: PaymentTransaction[];
   reportSnapshot: string; // JSON string of the report data
   createdAt: Timestamp;
-  paidAt?: Timestamp;
 }
 
-export type PaymentSerializable = Omit<Payment, 'startDate' | 'endDate' | 'createdAt' | 'paidAt'> & {
+export type PaymentSerializable = Omit<Payment, 'startDate' | 'endDate' | 'createdAt' | 'transactions'> & {
   startDate: string;
   endDate: string;
   createdAt: string;
-  paidAt?: string;
+  transactions: PaymentTransactionSerializable[];
 };

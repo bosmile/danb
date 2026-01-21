@@ -48,12 +48,21 @@
           "description": "Total amount for the item (calculated: quantity * price)."
         },
         "receivingPlace": {
-            "type": "string",
-            "description": "The place where the goods are received.",
-            "enum": ["NĐ", "HN"]
+          "type": "string",
+          "description": "The place where the goods are received.",
+          "enum": [
+            "NĐ",
+            "HN"
+          ]
         }
       },
-      "required": ["productName", "quantity", "price", "total", "receivingPlace"]
+      "required": [
+        "productName",
+        "quantity",
+        "price",
+        "total",
+        "receivingPlace"
+      ]
     },
     "Invoice": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -75,16 +84,19 @@
           "description": "Category of the invoice (BIGC, SPLZD, OTHER)."
         },
         "buyer": {
-            "type": "string",
-            "description": "The person who made the purchase.",
-            "enum": ["Hà", "Hằng"]
+          "type": "string",
+          "description": "The person who made the purchase.",
+          "enum": [
+            "Hà",
+            "Hằng"
+          ]
         },
         "items": {
-            "type": "array",
-            "description": "A list of items included in the invoice.",
-            "items": {
-                "$ref": "#/backend/entities/InvoiceItem"
-            }
+          "type": "array",
+          "description": "A list of items included in the invoice.",
+          "items": {
+            "$ref": "#/backend/entities/InvoiceItem"
+          }
         },
         "grandTotal": {
           "type": "number",
@@ -108,6 +120,85 @@
         "buyer",
         "items",
         "grandTotal",
+        "createdAt"
+      ]
+    },
+    "PaymentTransaction": {
+      "title": "Payment Transaction",
+      "type": "object",
+      "description": "Represents a single partial payment for a payment period.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the transaction."
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date the payment was made."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the payment."
+        },
+        "note": {
+          "type": "string",
+          "description": "An optional note for the payment."
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "amount"
+      ]
+    },
+    "Payment": {
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a payment settlement for a specific period.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the payment."
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The start date of the payment period."
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The end date of the payment period."
+        },
+        "transactions": {
+          "type": "array",
+          "description": "A list of partial payments made for this period.",
+          "items": {
+            "$ref": "#/backend/entities/PaymentTransaction"
+          }
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount for the payment period."
+        },
+        "reportSnapshot": {
+          "type": "string",
+          "description": "A JSON string snapshot of the report data at the time of creation."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the payment record was created."
+        }
+      },
+      "required": [
+        "id",
+        "startDate",
+        "endDate",
+        "transactions",
+        "totalAmount",
+        "reportSnapshot",
         "createdAt"
       ]
     }
@@ -151,10 +242,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Stores payment settlement records.",
+          "params": [
+            {
+              "name": "paymentId",
+              "description": "Unique identifier for the payment."
+            }
+          ]
+        }
       }
     ],
     "reasoning": "The Firestore structure is designed to manage products and invoices for the InvoiceFlow application. It prioritizes authorization independence and supports the application's core features, including dashboard summaries, invoice creation, product management, and reporting. The structure is segregated into distinct collections for products and invoices, ensuring a homogeneous security posture for each.\n\nProducts are stored in a simple collection, `/products`, and invoices are stored in `/invoices`. No authorization is required besides authentication since all users can access this data. This structure facilitates straightforward read operations (QAPs) for displaying products in the autocomplete dropdown and listing invoices in the table view. The decision to store invoices at the root allows for easy querying of all invoices without complex rule logic.\n\nSpecifically, the structure achieves Authorization Independence by avoiding any hierarchical dependencies. All necessary data for displaying and managing these entities exists within each document, removing the need for `get()` calls in the security rules.\n\nQAPs are satisfied through structural segregation. List operations on `/products` and `/invoices` are inherently secure because the application logic does not require any filtering based on user roles or ownership within the rules themselves. Security rules can permit list operations based solely on authentication status, if required, without needing to inspect the content of the documents."
   }
 }
-
-    

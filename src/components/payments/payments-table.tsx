@@ -38,6 +38,11 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    initialState: {
+        pagination: {
+            pageSize: 5,
+        }
+    },
     state: {
       sorting,
     },

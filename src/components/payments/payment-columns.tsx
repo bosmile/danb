@@ -13,15 +13,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { updatePaymentStatus, deletePayment } from '@/lib/actions/payments';
+import { deletePayment } from '@/lib/actions/payments';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { PaymentReportModal } from './payment-report-modal';
+import { Progress } from '../ui/progress';
+import { PaymentTransactionsModal } from './payment-transactions-modal';
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
+
+const getPaymentStatus = (paidAmount: number, totalAmount: number): { text: string, color: string } => {
+    if (paidAmount <= 0) {
+        return { text: 'Chưa thanh toán', color: 'text-destructive' };
+    }
+    if (paidAmount >= totalAmount) {
+        return { text: 'Đã hoàn tất', color: 'text-green-600' };
+    }
+    return { text: 'Thanh toán một phần', color: 'text-yellow-600' };
+};
 
 export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentSerializable>[] => [
   {
@@ -38,8 +49,9 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
     cell: ({ row }) => {
         const startDate = row.original.startDate;
         const endDate = row.original.endDate;
-        return `${format(new Date(startDate), 'dd/MM/yyyy')} - ${format(new Date(endDate), 'dd/MM/yyyy')}`;
-    }
+        return `${format(new Date(startDate), 'dd/MM/yy')} - ${format(new Date(endDate), 'dd/MM/yy')}`;
+    },
+    sortingFn: 'datetime'
   },
   {
     accessorKey: 'totalAmount',
@@ -47,43 +59,51 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="justify-end w-full"
       >
         Tổng tiền
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => currencyFormatter(row.getValue('totalAmount')),
+    cell: ({ row }) => <div className="text-right">{currencyFormatter(row.getValue('totalAmount'))}</div>,
   },
   {
-    accessorKey: 'createdAt',
-    header: 'Ngày tạo',
-    cell: ({ row }) => format(new Date(row.getValue('createdAt')), 'dd/MM/yyyy'),
-  },
-  {
-    accessorKey: 'isPaid',
-    header: 'Đã thanh toán',
+    accessorKey: 'paidAmount',
+    header: ({ column }) => (
+        <Button variant="ghost" className="justify-end w-full">Đã thanh toán</Button>
+    ),
     cell: ({ row }) => {
-        const payment = row.original;
-        const { toast } = useToast();
+        const paidAmount = row.original.transactions.reduce((acc, t) => acc + t.amount, 0);
+        return <div className="text-right">{currencyFormatter(paidAmount)}</div>;
+    }
+  },
+   {
+    accessorKey: 'remainingAmount',
+    header: ({ column }) => (
+        <Button variant="ghost" className="justify-end w-full">Còn lại</Button>
+    ),
+    cell: ({ row }) => {
+        const paidAmount = row.original.transactions.reduce((acc, t) => acc + t.amount, 0);
+        const remainingAmount = row.original.totalAmount - paidAmount;
+        return <div className="text-right font-semibold text-primary">{currencyFormatter(remainingAmount)}</div>;
+    }
+  },
+  {
+    accessorKey: 'status',
+    header: 'Trạng thái',
+    cell: ({ row }) => {
+        const paidAmount = row.original.transactions.reduce((acc, t) => acc + t.amount, 0);
+        const totalAmount = row.original.totalAmount;
+        const progress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
+        const status = getPaymentStatus(paidAmount, totalAmount);
         
-        const handleCheckedChange = async (checked: boolean) => {
-            const result = await updatePaymentStatus(payment.id, checked);
-            if (result.success) {
-                toast({ title: 'Thành công', description: 'Đã cập nhật trạng thái thanh toán.' });
-                onDataChanged();
-            } else {
-                toast({ variant: 'destructive', title: 'Lỗi', description: result.error });
-            }
-        };
-
         return (
-            <Checkbox
-                checked={payment.isPaid}
-                onCheckedChange={handleCheckedChange}
-                aria-label="Đã thanh toán"
-            />
+            <div className="flex flex-col gap-2">
+                <span className={status.color}>{status.text}</span>
+                <Progress value={progress} className="h-2" />
+            </div>
         )
-    },
+    }
   },
   {
     id: 'actions',
@@ -112,6 +132,11 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+              <PaymentTransactionsModal payment={payment} onDataChanged={onDataChanged}>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
+                    Quản lý thanh toán
+                </DropdownMenuItem>
+              </PaymentTransactionsModal>
               <PaymentReportModal payment={payment}>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="flex items-center gap-2 cursor-pointer">
                     <Eye className="h-4 w-4"/> Xem báo cáo
@@ -119,7 +144,7 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
               </PaymentReportModal>
               <DropdownMenuSeparator />
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
                   Xóa
                 </DropdownMenuItem>
               </AlertDialogTrigger>
