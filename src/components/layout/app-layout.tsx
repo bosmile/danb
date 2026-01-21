@@ -7,7 +7,7 @@ import { HeaderNav } from './header-nav';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '../ui/button';
-import { Home, List, PanelLeft, BarChart3 } from 'lucide-react';
+import { Home, List, PanelLeft, BarChart3, CreditCard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
@@ -17,6 +17,7 @@ const navItems = [
   { href: '/', label: 'Trang chủ', icon: Home },
   { href: '/products', label: 'Hàng hóa', icon: List },
   { href: '/reports', label: 'Báo cáo', icon: BarChart3 },
+  { href: '/payments', label: 'Thanh toán', icon: CreditCard },
 ];
 
 function MobileSheetNav() {

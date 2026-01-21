@@ -10,6 +10,7 @@ const navItems = [
   { href: '/', label: 'Trang chủ' },
   { href: '/products', label: 'Hàng hóa' },
   { href: '/reports', label: 'Báo cáo' },
+  { href: '/payments', label: 'Thanh toán' },
 ];
 
 export function HeaderNav({ className }: { className?: string }) {

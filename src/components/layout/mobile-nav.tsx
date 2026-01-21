@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, List, BarChart3 } from 'lucide-react';
+import { Home, List, BarChart3, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Trang chủ', icon: Home },
   { href: '/products', label: 'Hàng hóa', icon: List },
   { href: '/reports', label: 'Báo cáo', icon: BarChart3 },
+  { href: '/payments', label: 'Thanh toán', icon: CreditCard },
 ];
 
 export function MobileNav({ className }: { className?: string }) {

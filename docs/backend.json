@@ -26,11 +26,49 @@
         "createdAt"
       ]
     },
+    "InvoiceItem": {
+      "title": "Invoice Item",
+      "type": "object",
+      "description": "Represents a single line item within an invoice.",
+      "properties": {
+        "productName": {
+          "type": "string",
+          "description": "Name of the product in the invoice item."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product."
+        },
+        "price": {
+          "type": "number",
+          "description": "Unit price of the product."
+        },
+        "total": {
+          "type": "number",
+          "description": "Total amount for the item (calculated: quantity * price)."
+        },
+        "receivingPlace": {
+          "type": "string",
+          "description": "The place where the goods are received.",
+          "enum": [
+            "NĐ",
+            "HN"
+          ]
+        }
+      },
+      "required": [
+        "productName",
+        "quantity",
+        "price",
+        "total",
+        "receivingPlace"
+      ]
+    },
     "Invoice": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Invoice",
       "type": "object",
-      "description": "Represents an invoice record.",
+      "description": "Represents an invoice record, which can contain multiple items.",
       "properties": {
         "id": {
           "type": "string",
@@ -45,21 +83,24 @@
           "type": "string",
           "description": "Category of the invoice (BIGC, SPLZD, OTHER)."
         },
-        "productName": {
+        "buyer": {
           "type": "string",
-          "description": "Name of the product in the invoice. It could be a reference to Product entity's name or a new product name."
+          "description": "The person who made the purchase.",
+          "enum": [
+            "Hà",
+            "Hằng"
+          ]
         },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product in the invoice."
+        "items": {
+          "type": "array",
+          "description": "A list of items included in the invoice.",
+          "items": {
+            "$ref": "#/backend/entities/InvoiceItem"
+          }
         },
-        "price": {
+        "grandTotal": {
           "type": "number",
-          "description": "Unit price of the product in the invoice."
-        },
-        "total": {
-          "type": "number",
-          "description": "Total amount for the invoice item (calculated: quantity * price)."
+          "description": "The total amount for the entire invoice."
         },
         "imageUrl": {
           "type": "string",
@@ -76,11 +117,61 @@
         "id",
         "date",
         "category",
-        "productName",
-        "quantity",
-        "price",
-        "total",
-        "imageUrl",
+        "buyer",
+        "items",
+        "grandTotal",
+        "createdAt"
+      ]
+    },
+    "Payment": {
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a payment settlement for a specific period.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the payment."
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The start date of the payment period."
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The end date of the payment period."
+        },
+        "isPaid": {
+          "type": "boolean",
+          "description": "Whether the payment has been settled."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount for the payment period."
+        },
+        "reportSnapshot": {
+          "type": "string",
+          "description": "A JSON string snapshot of the report data at the time of creation."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the payment record was created."
+        },
+        "paidAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the payment was marked as paid."
+        }
+      },
+      "required": [
+        "id",
+        "startDate",
+        "endDate",
+        "isPaid",
+        "totalAmount",
+        "reportSnapshot",
         "createdAt"
       ]
     }
@@ -121,6 +212,22 @@
             {
               "name": "invoiceId",
               "description": "Unique identifier for the invoice."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Stores payment settlement records.",
+          "params": [
+            {
+              "name": "paymentId",
+              "description": "Unique identifier for the payment."
             }
           ]
         }

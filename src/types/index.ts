@@ -41,4 +41,20 @@ export type ProductSerializable = Omit<Product, 'createdAt'> & {
   createdAt: string;
 };
 
-    
+export interface Payment {
+  id: string;
+  startDate: Timestamp;
+  endDate: Timestamp;
+  isPaid: boolean;
+  totalAmount: number;
+  reportSnapshot: string; // JSON string of the report data
+  createdAt: Timestamp;
+  paidAt?: Timestamp;
+}
+
+export type PaymentSerializable = Omit<Payment, 'startDate' | 'endDate' | 'createdAt' | 'paidAt'> & {
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  paidAt?: string;
+};
