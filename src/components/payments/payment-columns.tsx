@@ -74,7 +74,19 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
     ),
     cell: ({ row }) => {
         const paidAmount = row.original.transactions.reduce((acc, t) => acc + t.amount, 0);
-        return <div className="text-right">{currencyFormatter(paidAmount)}</div>;
+        const transactions = row.original.transactions || [];
+        return (
+            <div className="text-right">
+                <div>{currencyFormatter(paidAmount)}</div>
+                {transactions.length > 0 && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                        {transactions.map(t => (
+                            <div key={t.id}>{format(new Date(t.date), 'dd/MM/yy')}</div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
     }
   },
    {
