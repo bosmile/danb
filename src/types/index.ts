@@ -45,7 +45,6 @@ export interface PaymentTransaction {
   id: string;
   date: Timestamp;
   amount: number;
-  note?: string;
 }
 
 export type PaymentTransactionSerializable = Omit<PaymentTransaction, 'date'> & {

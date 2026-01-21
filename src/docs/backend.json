@@ -140,10 +140,6 @@
         "amount": {
           "type": "number",
           "description": "The amount of the payment."
-        },
-        "note": {
-          "type": "string",
-          "description": "An optional note for the payment."
         }
       },
       "required": [

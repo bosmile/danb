@@ -148,7 +148,7 @@ export async function createPaymentForPeriod(startDate: Date, endDate: Date): Pr
 
 export async function addTransactionToPayment(
     paymentId: string,
-    transactionData: { amount: number; date: Date; note?: string }
+    transactionData: { amount: number; date: Date; }
 ): Promise<{ success: boolean; error?: string; newRemainingAmount?: number }> {
     try {
         const db = await getUnauthenticatedFirestore();
@@ -165,7 +165,6 @@ export async function addTransactionToPayment(
             id: randomUUID(),
             date: Timestamp.fromDate(transactionData.date),
             amount: transactionData.amount,
-            note: transactionData.note || '',
         };
 
         const updatedTransactions = [...(payment.transactions || []), newTransaction];

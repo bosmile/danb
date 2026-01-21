@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ManualDateInput } from '../shared/manual-date-input';
-import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { addTransactionToPayment, deleteTransaction } from '@/lib/actions/payments';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
@@ -34,7 +33,6 @@ const currencyFormatter = (value: number) => {
 const transactionSchema = z.object({
     amount: z.coerce.number().min(1, 'Số tiền phải lớn hơn 0.'),
     date: z.date({ required_error: 'Vui lòng chọn ngày thanh toán.' }),
-    note: z.string().optional(),
 });
 type TransactionFormData = z.infer<typeof transactionSchema>;
 
@@ -51,7 +49,6 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
         defaultValues: {
             amount: remainingAmount > 0 ? remainingAmount : 0,
             date: undefined,
-            note: '',
         }
     });
 
@@ -66,7 +63,6 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
                 form.reset({
                     amount: result.newRemainingAmount && result.newRemainingAmount > 0 ? result.newRemainingAmount : 0,
                     date: undefined,
-                    note: ''
                 });
             } else {
                 throw new Error(result.error);
@@ -113,13 +109,6 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
                                     <FormMessage />
                                 </FormItem>
                             )} />
-                             <FormField name="note" control={form.control} render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Ghi chú</FormLabel>
-                                    <FormControl><Textarea {...field} rows={1} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
                             <div className="text-right">
                                  <Button type="submit" disabled={isSubmitting}>
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -138,7 +127,6 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
                                 <TableRow>
                                     <TableHead>Ngày</TableHead>
                                     <TableHead className="text-right">Số tiền</TableHead>
-                                    <TableHead>Ghi chú</TableHead>
                                     <TableHead className="text-right">Hành động</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -148,7 +136,6 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
                                         <TableRow key={t.id}>
                                             <TableCell>{format(new Date(t.date), 'dd/MM/yyyy')}</TableCell>
                                             <TableCell className="text-right">{currencyFormatter(t.amount)}</TableCell>
-                                            <TableCell className="text-wrap">{t.note}</TableCell>
                                             <TableCell className="text-right">
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
@@ -172,7 +159,7 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">Chưa có thanh toán nào.</TableCell>
+                                        <TableCell colSpan={3} className="h-24 text-center">Chưa có thanh toán nào.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
