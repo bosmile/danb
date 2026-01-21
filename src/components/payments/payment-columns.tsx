@@ -25,8 +25,16 @@ const currencyFormatter = (value: number) => {
 
 export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentSerializable>[] => [
   {
-    id: 'period',
-    header: 'Kỳ thanh toán',
+    accessorKey: 'endDate',
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Kỳ thanh toán
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
         const startDate = row.original.startDate;
         const endDate = row.original.endDate;
