@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import type { PaymentSerializable } from '@/types';
 import { format } from 'date-fns';
-import { ArrowUpDown, MoreHorizontal, Eye } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Eye, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,7 +18,6 @@ import { deletePayment } from '@/lib/actions/payments';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { PaymentReportModal } from './payment-report-modal';
 import { Progress } from '../ui/progress';
-import { PaymentTransactionsModal } from './payment-transactions-modal';
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -35,6 +34,27 @@ const getPaymentStatus = (paidAmount: number, totalAmount: number): { text: stri
 };
 
 export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentSerializable>[] => [
+  {
+    id: 'expander',
+    header: () => null,
+    cell: ({ row }) => {
+      return (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={row.getToggleExpandedHandler()}
+          className="h-8 w-8"
+        >
+          {row.getIsExpanded() ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+          <span className="sr-only">Toggle row</span>
+        </Button>
+      );
+    },
+  },
   {
     accessorKey: 'endDate',
     header: ({ column }) => (
@@ -144,11 +164,6 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-              <PaymentTransactionsModal payment={payment} onDataChanged={onDataChanged}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                    Quản lý thanh toán
-                </DropdownMenuItem>
-              </PaymentTransactionsModal>
               <PaymentReportModal payment={payment}>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="flex items-center gap-2 cursor-pointer">
                     <Eye className="h-4 w-4"/> Xem báo cáo

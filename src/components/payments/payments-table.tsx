@@ -8,6 +8,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  getExpandedRowModel,
+  type ExpandedState,
 } from '@tanstack/react-table';
 
 import {
@@ -21,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import type { PaymentSerializable } from '@/types';
 import { getPaymentColumns } from './payment-columns';
+import { PaymentTransactionForm } from './payment-transaction-form';
 
 interface PaymentsTableProps {
   data: PaymentSerializable[];
@@ -29,6 +32,7 @@ interface PaymentsTableProps {
 
 export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([{ id: 'endDate', desc: true }]);
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const columns = React.useMemo(() => getPaymentColumns(onDataChanged), [onDataChanged]);
 
   const table = useReactTable({
@@ -38,6 +42,8 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    onExpandedChange: setExpanded,
+    getExpandedRowModel: getExpandedRowModel(),
     initialState: {
         pagination: {
             pageSize: 5,
@@ -45,6 +51,7 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
     },
     state: {
       sorting,
+      expanded,
     },
   });
 
@@ -70,13 +77,25 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <React.Fragment key={row.id}>
+                  <TableRow data-state={row.getIsSelected() && 'selected'}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.getIsExpanded() && (
+                    <TableRow>
+                      <TableCell colSpan={columns.length}>
+                        <PaymentTransactionForm
+                          payment={row.original}
+                          onDataChanged={onDataChanged}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
               ))
             ) : (
               <TableRow>

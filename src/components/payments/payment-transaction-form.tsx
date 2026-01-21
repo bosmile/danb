@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
-import type { PaymentSerializable, PaymentTransactionSerializable } from '@/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import type { PaymentSerializable } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -40,31 +39,21 @@ const transactionSchema = z.object({
 type TransactionFormData = z.infer<typeof transactionSchema>;
 
 
-export function PaymentTransactionsModal({ children, payment, onDataChanged }: { children: React.ReactNode; payment: PaymentSerializable; onDataChanged: () => void; }) {
-    const [open, setOpen] = useState(false);
+export function PaymentTransactionForm({ payment, onDataChanged }: { payment: PaymentSerializable; onDataChanged: () => void; }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
+
+    const paidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
+    const remainingAmount = payment.totalAmount - paidAmount;
 
     const form = useForm<TransactionFormData>({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            amount: 0,
+            amount: remainingAmount > 0 ? remainingAmount : 0,
             date: undefined,
             note: '',
         }
     });
-
-    useEffect(() => {
-        if (open) {
-            const paidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
-            const remainingAmount = payment.totalAmount - paidAmount;
-            form.reset({
-                amount: remainingAmount > 0 ? remainingAmount : 0,
-                date: undefined,
-                note: ''
-            });
-        }
-    }, [open, payment, form]);
 
     const onSubmit = async (data: TransactionFormData) => {
         setIsSubmitting(true);
@@ -73,6 +62,12 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
             if (result.success) {
                 toast({ title: 'Thành công', description: 'Đã thêm thanh toán.' });
                 onDataChanged();
+                // Reset form after successful submission
+                form.reset({
+                    amount: result.newRemainingAmount && result.newRemainingAmount > 0 ? result.newRemainingAmount : 0,
+                    date: undefined,
+                    note: ''
+                });
             } else {
                 throw new Error(result.error);
             }
@@ -89,7 +84,6 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
             if (result.success) {
                 toast({ title: 'Thành công', description: 'Đã xóa thanh toán.' });
                 onDataChanged();
-                setOpen(false);
             } else {
                 throw new Error(result.error);
             }
@@ -97,44 +91,14 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
             toast({ variant: 'destructive', title: 'Lỗi', description: error.message });
         }
     };
-
-    const handleOpenChange = (isOpen: boolean) => {
-        setOpen(isOpen);
-    }
     
-    const paidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
-    const remainingAmount = payment.totalAmount - paidAmount;
-
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent className="max-w-3xl">
-                <DialogHeader>
-                    <DialogTitle>Quản lý thanh toán</DialogTitle>
-                    <DialogDescription>
-                        Kỳ thanh toán: {format(new Date(payment.startDate), 'dd/MM/yyyy')} - {format(new Date(payment.endDate), 'dd/MM/yyyy')}
-                    </DialogDescription>
-                </DialogHeader>
-                
-                <div className="grid grid-cols-3 gap-4 text-center my-4">
-                    <div className="p-4 bg-muted/50 rounded-lg">
-                        <p className="text-sm text-muted-foreground">Tổng công nợ</p>
-                        <p className="text-xl font-bold">{currencyFormatter(payment.totalAmount)}</p>
-                    </div>
-                     <div className="p-4 bg-muted/50 rounded-lg">
-                        <p className="text-sm text-muted-foreground">Đã thanh toán</p>
-                        <p className="text-xl font-bold">{currencyFormatter(paidAmount)}</p>
-                    </div>
-                     <div className="p-4 bg-primary/10 rounded-lg">
-                        <p className="text-sm text-primary">Còn lại</p>
-                        <p className="text-xl font-bold text-primary">{currencyFormatter(remainingAmount)}</p>
-                    </div>
-                </div>
-
+        <div className="p-4 bg-muted/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                     <h3 className="font-semibold">Thêm thanh toán mới</h3>
                      <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField name="date" control={form.control} render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Ngày trả</FormLabel>
@@ -156,7 +120,7 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
                                     <FormMessage />
                                 </FormItem>
                             )} />
-                            <div className="sm:col-span-3 text-right">
+                            <div className="text-right">
                                  <Button type="submit" disabled={isSubmitting}>
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     <Plus className="mr-2 h-4 w-4" /> Thêm
@@ -184,7 +148,7 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
                                         <TableRow key={t.id}>
                                             <TableCell>{format(new Date(t.date), 'dd/MM/yyyy')}</TableCell>
                                             <TableCell className="text-right">{currencyFormatter(t.amount)}</TableCell>
-                                            <TableCell>{t.note}</TableCell>
+                                            <TableCell className="text-wrap">{t.note}</TableCell>
                                             <TableCell className="text-right">
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
@@ -215,13 +179,7 @@ export function PaymentTransactionsModal({ children, payment, onDataChanged }: {
                         </Table>
                     </div>
                 </div>
-
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant="outline">Đóng</Button>
-                    </DialogClose>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </div>
+        </div>
     );
 }
