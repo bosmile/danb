@@ -28,15 +28,18 @@ export function MobileNav({ className }: { className?: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-1 rounded-md p-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-                isActive && 'text-primary'
+                'flex flex-col items-center gap-1 rounded-md p-2 text-muted-foreground transition-colors hover:text-primary',
+                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-600'
               )}
             >
               <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <span className={cn("text-[10px]", isActive ? 'font-bold' : 'font-medium')}>{item.label}</span>
             </Link>
           );
         })}
+      </div>
+      <div className="flex h-5 items-center justify-center pb-1">
+        <div className="h-1 w-32 rounded-full bg-slate-300 dark:bg-slate-700"></div>
       </div>
     </nav>
   );

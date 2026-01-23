@@ -5,80 +5,44 @@ import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { HeaderNav } from './header-nav';
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '../ui/button';
-import { Home, List, PanelLeft, BarChart3, CreditCard } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import * as React from 'react';
-
-
-const navItems = [
-  { href: '/', label: 'Trang chủ', icon: Home },
-  { href: '/products', label: 'Hàng hóa', icon: List },
-  { href: '/reports', label: 'Báo cáo', icon: BarChart3 },
-  { href: '/payments', label: 'Thanh toán', icon: CreditCard },
-];
-
-function MobileSheetNav() {
-    const pathname = usePathname();
-    const [open, setOpen] = React.useState(false);
-
-    return (
-         <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
-                    <PanelLeft className="h-5 w-5" />
-                    <span className="sr-only">Mở menu</span>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[240px] p-4">
-                <Link href="/" className="mb-8 flex items-center gap-2">
-                    <Logo className="h-8 w-8" />
-                    <span className="font-bold font-headline">DỰ ÁN NUÔI BƠ</span>
-                </Link>
-                <nav className="flex flex-col gap-2">
-                {navItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                            isActive && "bg-muted text-primary"
-                        )}
-                    >
-                        <item.icon className="h-4 w-4" />
-                        {item.label}
-                    </Link>
-                    );
-                })}
-                </nav>
-            </SheetContent>
-        </Sheet>
-    )
-}
+import { useUser } from '@/firebase';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User } from 'lucide-react';
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useUser();
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 print-hidden">
-        <div className="flex items-center gap-4">
-          <MobileSheetNav />
-          <Link href="/" className="items-center gap-2 hidden md:flex">
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-b-slate-200 dark:border-b-slate-800 bg-background/80 p-4 backdrop-blur-sm print-hidden md:h-14 md:px-6">
+        {/* Mobile Header */}
+        <div className="flex items-center gap-3 md:hidden">
+            <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+                {user?.photoURL && <AvatarImage src={user.photoURL} alt="User profile" />}
+                <AvatarFallback>
+                    <User className="h-5 w-5"/>
+                </AvatarFallback>
+            </Avatar>
+            <div>
+                <h1 className="text-lg font-bold leading-tight font-headline">DỰ ÁN NUÔI BƠ</h1>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Quản lý mua hàng</p>
+            </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden items-center gap-4 md:flex">
+          <Link href="/" className="items-center gap-2 flex">
             <Logo className="h-8 w-8" />
             <h1 className="text-lg font-bold font-headline hidden lg:block">
               DỰ ÁN NUÔI BƠ
             </h1>
           </Link>
-          <HeaderNav className="hidden md:flex" />
+          <HeaderNav />
         </div>
         <ThemeToggle />
       </header>
-      <main className="flex-1 p-4 sm:p-6 pb-20 md:pb-6">{children}</main>
+      <main className="flex-1 p-4 sm:p-6 pb-28 md:pb-6">{children}</main>
       <MobileNav className="print-hidden" />
     </div>
   );
