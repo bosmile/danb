@@ -49,9 +49,9 @@ export default function ReportsPage() {
         description="Xem báo cáo chi tiết và tổng hợp theo khoảng thời gian."
         className="print-hidden"
       >
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col gap-3 md:flex-row md:gap-2">
             <Select value={category} onValueChange={(value: CategoryFilter) => setCategory(value)}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full md:w-[180px] bg-card rounded-lg py-3 text-sm md:py-2 md:text-xs">
                     <SelectValue placeholder="Lọc theo loại" />
                 </SelectTrigger>
                 <SelectContent>
@@ -61,15 +61,16 @@ export default function ReportsPage() {
                     <SelectItem value="OTHER">Khác</SelectItem>
                 </SelectContent>
             </Select>
-            <div className="flex items-center gap-2">
-                <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
-                <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+            <div className="grid grid-cols-2 gap-3 md:flex md:items-center md:gap-2">
+                <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" className="[&_input]:bg-card [&_input]:rounded-lg [&_input]:py-3 [&_input]:text-sm md:[&_input]:py-2 md:[&_input]:text-xs"/>
+                <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" className="[&_input]:bg-card [&_input]:rounded-lg [&_input]:py-3 [&_input]:text-sm md:[&_input]:py-2 md:[&_input]:text-xs"/>
             </div>
         </div>
       </PageHeader>
       
       {loading ? (
         <div className="space-y-8">
+            <Skeleton className="h-40 w-full" />
             <Skeleton className="h-40 w-full" />
             <Skeleton className="h-40 w-full" />
         </div>
