@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { ManualDateInput } from '../shared/manual-date-input';
 import { useToast } from '@/hooks/use-toast';
 import { addTransactionToPayment, deleteTransaction } from '@/lib/actions/payments';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,10 +46,19 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
     const form = useForm<TransactionFormData>({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            amount: remainingAmount > 0 ? remainingAmount : 0,
-            date: undefined,
+            amount: 0,
+            date: new Date(),
         }
     });
+
+    useEffect(() => {
+        form.reset({
+             amount: remainingAmount > 0 ? remainingAmount : 0,
+            date: new Date(),
+        })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [payment.id, remainingAmount]);
+
 
     const onSubmit = async (data: TransactionFormData) => {
         setIsSubmitting(true);
@@ -58,12 +66,7 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
             const result = await addTransactionToPayment(payment.id, data);
             if (result.success) {
                 toast({ title: 'Thành công', description: 'Đã thêm thanh toán.' });
-                onDataChanged();
-                // Reset form after successful submission
-                form.reset({
-                    amount: result.newRemainingAmount && result.newRemainingAmount > 0 ? result.newRemainingAmount : 0,
-                    date: undefined,
-                });
+                onDataChanged(); 
             } else {
                 throw new Error(result.error);
             }
@@ -89,84 +92,79 @@ export function PaymentTransactionForm({ payment, onDataChanged }: { payment: Pa
     };
     
     return (
-        <div className="p-4 bg-muted/50">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                    <h3 className="font-semibold">Thêm thanh toán mới</h3>
-                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <FormField name="date" control={form.control} render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Ngày trả</FormLabel>
-                                    <FormControl><ManualDateInput date={field.value} setDate={field.onChange} placeholder="Nhập ngày (ddmmyy)" /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            <FormField name="amount" control={form.control} render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Số tiền</FormLabel>
-                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                            <div className="text-right">
-                                 <Button type="submit" disabled={isSubmitting}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    <Plus className="mr-2 h-4 w-4" /> Thêm
-                                </Button>
+        <div className="space-y-5">
+            <div>
+                <h4 className="text-xs font-bold text-muted-foreground mb-3">Thêm thanh toán mới</h4>
+                 <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                         <div className="flex gap-2 items-start">
+                             <div className="relative flex-1">
+                                <FormLabel className="text-[10px] absolute -top-1.5 left-3 bg-muted/30 px-1 text-muted-foreground z-10">Ngày trả</FormLabel>
+                                <FormField name="date" control={form.control} render={({ field }) => (
+                                    <FormItem className="space-y-0">
+                                        <FormControl>
+                                            <ManualDateInput 
+                                                date={field.value} 
+                                                setDate={field.onChange} 
+                                                placeholder="Nhập ngày (ddmmyy)" 
+                                                className="[&_input]:bg-background"
+                                            />
+                                        </FormControl>
+                                        <FormMessage className="text-xs pt-1"/>
+                                    </FormItem>
+                                )} />
                             </div>
-                        </form>
-                    </Form>
-                </div>
-                
-                <div className="space-y-4">
-                    <h3 className="font-semibold">Lịch sử thanh toán</h3>
-                    <div className="border rounded-md max-h-60 overflow-y-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Ngày</TableHead>
-                                    <TableHead className="text-right">Số tiền</TableHead>
-                                    <TableHead className="text-right">Hành động</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {payment.transactions.length > 0 ? (
-                                    payment.transactions.map(t => (
-                                        <TableRow key={t.id}>
-                                            <TableCell>{format(new Date(t.date), 'dd/MM/yyyy')}</TableCell>
-                                            <TableCell className="text-right">{currencyFormatter(t.amount)}</TableCell>
-                                            <TableCell className="text-right">
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="text-destructive h-8 w-8">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Xóa lần thanh toán?</AlertDialogTitle>
-                                                            <AlertDialogDescription>Hành động này không thể hoàn tác.</AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(t.id)} className="bg-destructive hover:bg-destructive/90">Xóa</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={3} className="h-24 text-center">Chưa có thanh toán nào.</TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                            <div className="relative flex-1">
+                                <FormLabel className="text-[10px] absolute -top-1.5 left-3 bg-muted/30 px-1 text-muted-foreground z-10">Số tiền</FormLabel>
+                                <FormField name="amount" control={form.control} render={({ field }) => (
+                                    <FormItem className="space-y-0">
+                                        <FormControl><Input type="number" {...field} className="bg-background" /></FormControl>
+                                        <FormMessage className="text-xs pt-1"/>
+                                    </FormItem>
+                                )} />
+                            </div>
+                            <Button type="submit" disabled={isSubmitting} size="icon" className="w-10 h-10 aspect-square shrink-0">
+                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </div>
+            
+            {(payment.transactions && payment.transactions.length > 0) && (
+                 <div>
+                    <h4 className="text-xs font-bold text-muted-foreground mb-2">Lịch sử thanh toán</h4>
+                    <div className="bg-background rounded-xl overflow-hidden border border-border">
+                        {payment.transactions.map(t => (
+                            <div key={t.id} className="flex items-center justify-between p-3 border-b border-border last:border-0">
+                                <div>
+                                    <p className="text-sm font-medium">{format(new Date(t.date), 'dd/MM/yyyy')}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm font-bold">{currencyFormatter(t.amount)}</p>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="text-destructive h-7 w-7">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Xóa lần thanh toán?</AlertDialogTitle>
+                                                <AlertDialogDescription>Hành động này không thể hoàn tác.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete(t.id)} className="bg-destructive hover:bg-destructive/90">Xóa</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

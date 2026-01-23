@@ -12,6 +12,9 @@ import { getPayments, createPaymentForPeriod } from '@/lib/actions/payments';
 import type { PaymentSerializable } from '@/types';
 import { PaymentsTable } from '@/components/payments/payments-table';
 import { PaymentReportModal } from '@/components/payments/payment-report-modal';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PaymentsList } from '@/components/payments/payments-list';
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -25,6 +28,7 @@ export default function PaymentsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [newlyCreatedPayment, setNewlyCreatedPayment] = useState<PaymentSerializable | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const refreshPayments = async () => {
     setIsLoading(true);
@@ -50,7 +54,7 @@ export default function PaymentsPage() {
 
     const totalDebt = payments.reduce((acc, p) => acc + p.totalAmount, 0);
 
-    const allTransactions = payments.flatMap(p => p.transactions);
+    const allTransactions = payments.flatMap(p => p.transactions || []);
     const totalPaid = allTransactions.reduce((acc, t) => acc + t.amount, 0);
     
     const remaining = totalDebt - totalPaid;
@@ -76,7 +80,7 @@ export default function PaymentsPage() {
         await refreshPayments();
         setNewlyCreatedPayment(result.newPayment);
       } else {
-        throw new Error(result.error);
+        throw new Error(result.error || 'Không thể tạo kỳ thanh toán');
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Lỗi', description: error.message || 'Không thể lưu kỳ thanh toán.' });
@@ -85,37 +89,47 @@ export default function PaymentsPage() {
     }
   };
 
+  if (isMobile === undefined) {
+    return (
+        <div className="space-y-6">
+            <PageHeader title="Quản lý thanh toán" description="Lưu và theo dõi các kỳ thanh toán." />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-36 w-full" />
+            <Skeleton className="h-60 w-full" />
+        </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Quản lý thanh toán"
         description="Lưu và theo dõi các kỳ thanh toán."
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Tình hình công nợ</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-6 md:grid-cols-3">
-          <div className="flex flex-col space-y-1.5">
-            <span className="text-sm text-muted-foreground">Tổng nợ</span>
-            <span className="text-2xl font-bold">{currencyFormatter(summaryStats.totalDebt)}</span>
-          </div>
-          <div className="flex flex-col space-y-1.5">
-            <span className="text-sm text-muted-foreground">Đã thanh toán</span>
-            <span className="text-2xl font-bold">{currencyFormatter(summaryStats.totalPaid)}</span>
-             {summaryStats.lastPaidDate && (
-                <p className="text-xs text-muted-foreground">
-                    Thanh toán gần nhất: {format(summaryStats.lastPaidDate, 'dd/MM/yyyy')}
-                </p>
-            )}
-          </div>
-          <div className="flex flex-col space-y-1.5">
-            <span className="text-sm font-bold text-primary">Còn lại</span>
-            <span className="text-2xl font-bold text-primary">{currencyFormatter(summaryStats.remaining)}</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Tình hình công nợ</h2>
+        <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible">
+            <div className="min-w-[160px] flex-shrink-0 space-y-1.5 rounded-2xl border bg-card p-4 shadow-sm">
+                <p className="text-xs text-muted-foreground">Tổng nợ</p>
+                <p className="text-lg font-bold">{currencyFormatter(summaryStats.totalDebt)}</p>
+            </div>
+            <div className="min-w-[160px] flex-shrink-0 space-y-1.5 rounded-2xl border bg-card p-4 shadow-sm">
+                <p className="text-xs text-muted-foreground">Đã thanh toán</p>
+                <p className="text-lg font-bold">{currencyFormatter(summaryStats.totalPaid)}</p>
+                {summaryStats.lastPaidDate && (
+                    <p className="text-[10px] text-muted-foreground pt-1">
+                        Gần nhất: {format(summaryStats.lastPaidDate, 'dd/MM/yy')}
+                    </p>
+                )}
+            </div>
+            <div className="min-w-[160px] flex-shrink-0 space-y-1.5 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm">
+                <p className="text-xs text-muted-foreground">Còn lại</p>
+                <p className="text-lg font-bold text-primary">{currencyFormatter(summaryStats.remaining)}</p>
+            </div>
+        </div>
+      </div>
+
 
       <Card>
         <CardHeader>
@@ -127,25 +141,31 @@ export default function PaymentsPage() {
              <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
              <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
           </div>
-          <Button onClick={handleCreatePayment} disabled={isCreating || !startDate || !endDate}>
+          <Button onClick={handleCreatePayment} disabled={isCreating || !startDate || !endDate} className="w-full sm:w-auto">
             {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Lưu kỳ thanh toán
           </Button>
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-            <CardTitle>Lịch sử thanh toán</CardTitle>
-        </CardHeader>
-        <CardContent>
-            {isLoading ? (
-                <p>Đang tải...</p>
-            ) : (
-                <PaymentsTable data={payments} onDataChanged={refreshPayments} />
-            )}
-        </CardContent>
-      </Card>
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Lịch sử thanh toán</h2>
+        {isLoading ? (
+            <div className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-2xl" />
+                <Skeleton className="h-48 w-full rounded-2xl" />
+            </div>
+        ) : isMobile ? (
+            <PaymentsList data={payments} onDataChanged={refreshPayments} />
+        ) : (
+            <Card>
+                <CardContent className="p-0">
+                    <PaymentsTable data={payments} onDataChanged={refreshPayments} />
+                </CardContent>
+            </Card>
+        )}
+      </div>
+      
 
       {newlyCreatedPayment && (
         <PaymentReportModal 
