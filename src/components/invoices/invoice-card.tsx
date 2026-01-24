@@ -11,6 +11,7 @@ import {
   } from '@/components/ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
+import { InvoiceDetailsModal } from './invoice-details-modal';
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN').format(value);
@@ -29,41 +30,45 @@ export function InvoiceCard({ invoice, onDelete }: { invoice: InvoiceSerializabl
   const placeText = places.length === 0 ? '' : places.length === 1 ? places[0] : 'Nhiều nơi';
   
   return (
-    <div className="bg-card p-4 rounded-2xl shadow-sm border border-border active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors">
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
-          <CategoryBadge category={invoice.category} />
-          <span className="text-xs text-slate-400 font-medium">{format(new Date(invoice.date), 'dd/MM/yyyy')}</span>
+    <InvoiceDetailsModal invoice={invoice}>
+        <div className="bg-card p-4 rounded-2xl shadow-sm border border-border active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer">
+        <div className="flex justify-between items-start mb-2">
+            <div className="flex items-center gap-2">
+            <CategoryBadge category={invoice.category} />
+            <span className="text-xs text-slate-400 font-medium">{format(new Date(invoice.date), 'dd/MM/yyyy')}</span>
+            </div>
+            <div onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-6 w-6 p-0 text-slate-400">
+                            <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                            <Link href={`/invoices/${invoice.id}/edit`}>Sửa</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => onDelete(invoice.id)}>
+                        Xóa
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
         </div>
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-6 w-6 p-0 text-slate-400">
-                    <MoreHorizontal className="h-5 w-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                    <Link href={`/invoices/${invoice.id}/edit`}>Sửa</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => onDelete(invoice.id)}>
-                  Xóa
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="flex justify-between items-end">
-        <div>
-          <p className="text-sm font-bold text-foreground mb-0.5">
-            {invoice.items.length === 1 ? invoice.items[0].productName : `${invoice.items.length} sản phẩm`}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {invoice.buyer} - {placeText}
-          </p>
+        <div className="flex justify-between items-end">
+            <div>
+            <p className="text-sm font-bold text-foreground mb-0.5">
+                {invoice.items.length === 1 ? invoice.items[0].productName : `${invoice.items.length} sản phẩm`}
+            </p>
+            <p className="text-xs text-muted-foreground">
+                {invoice.buyer} - {placeText}
+            </p>
+            </div>
+            <div className="text-right">
+            <p className="text-primary font-bold text-lg">{currencyFormatter(invoice.grandTotal)} <span className="text-[10px] font-normal underline">đ</span></p>
+            </div>
         </div>
-        <div className="text-right">
-          <p className="text-primary font-bold text-lg">{currencyFormatter(invoice.grandTotal)} <span className="text-[10px] font-normal underline">đ</span></p>
         </div>
-      </div>
-    </div>
+    </InvoiceDetailsModal>
   );
 }
