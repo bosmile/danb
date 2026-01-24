@@ -34,7 +34,7 @@ export function InvoiceDetailsModal({ invoice, children }: InvoiceDetailsModalPr
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-sm sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Chi tiết hóa đơn</DialogTitle>
         </DialogHeader>
@@ -98,5 +98,3 @@ export function InvoiceDetailsModal({ invoice, children }: InvoiceDetailsModalPr
     </Dialog>
   );
 }
-
-    
