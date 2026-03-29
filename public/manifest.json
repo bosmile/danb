@@ -1,0 +1,23 @@
+{
+  "name": "DANB - Quản lý hóa đơn",
+  "short_name": "DANB",
+  "description": "Ứng dụng quản lý hóa đơn và thanh toán thông minh",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

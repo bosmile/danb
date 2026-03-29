@@ -19,13 +19,13 @@ export const supabase = createClient(
 export function fromDB(item: any) {
   if (!item) return item;
   const newItem = { ...item };
-  if (newItem.hasOwnProperty('created_at')) { newItem.createdAt = newItem.created_at; delete newItem.created_at; }
-  if (newItem.hasOwnProperty('grand_total')) { newItem.grandTotal = newItem.grand_total; delete newItem.grand_total; }
-  if (newItem.hasOwnProperty('image_url')) { newItem.imageUrl = newItem.image_url; delete newItem.image_url; }
-  if (newItem.hasOwnProperty('start_date')) { newItem.startDate = newItem.start_date; delete newItem.start_date; }
-  if (newItem.hasOwnProperty('end_date')) { newItem.endDate = newItem.end_date; delete newItem.endDate; }
-  if (newItem.hasOwnProperty('total_amount')) { newItem.totalAmount = newItem.total_amount; delete newItem.total_amount; }
-  if (newItem.hasOwnProperty('report_snapshot')) { newItem.reportSnapshot = newItem.report_snapshot; delete newItem.report_snapshot; }
+  if ('created_at' in newItem) { newItem.createdAt = newItem.created_at; delete newItem.created_at; }
+  if ('grand_total' in newItem) { newItem.grandTotal = newItem.grand_total; delete newItem.grand_total; }
+  if ('image_url' in newItem) { newItem.imageUrl = newItem.image_url; delete newItem.image_url; }
+  if ('start_date' in newItem) { newItem.startDate = newItem.start_date; delete newItem.start_date; }
+  if ('end_date' in newItem) { newItem.endDate = newItem.end_date; delete newItem.end_date; }
+  if ('total_amount' in newItem) { newItem.totalAmount = newItem.total_amount; delete newItem.total_amount; }
+  if ('report_snapshot' in newItem) { newItem.reportSnapshot = newItem.report_snapshot; delete newItem.report_snapshot; }
   return newItem;
 }
 
@@ -33,13 +33,13 @@ export function fromDB(item: any) {
 export function toDB(item: any) {
   if (!item) return item;
   const newItem = { ...item };
-  if (newItem.hasOwnProperty('createdAt')) { newItem.created_at = newItem.createdAt; delete newItem.createdAt; }
-  if (newItem.hasOwnProperty('grandTotal')) { newItem.grand_total = newItem.grandTotal; delete newItem.grandTotal; }
-  if (newItem.hasOwnProperty('imageUrl')) { newItem.image_url = newItem.imageUrl; delete newItem.imageUrl; }
-  if (newItem.hasOwnProperty('startDate')) { newItem.start_date = newItem.startDate; delete newItem.startDate; }
-  if (newItem.hasOwnProperty('endDate')) { newItem.end_date = newItem.endDate; delete newItem.endDate; }
-  if (newItem.hasOwnProperty('totalAmount')) { newItem.total_amount = newItem.totalAmount; delete newItem.totalAmount; }
-  if (newItem.hasOwnProperty('reportSnapshot')) { newItem.report_snapshot = newItem.reportSnapshot; delete newItem.reportSnapshot; }
+  if ('createdAt' in newItem) { newItem.created_at = newItem.createdAt; delete newItem.createdAt; }
+  if ('grandTotal' in newItem) { newItem.grand_total = newItem.grandTotal; delete newItem.grandTotal; }
+  if ('imageUrl' in newItem) { newItem.image_url = newItem.imageUrl; delete newItem.imageUrl; }
+  if ('startDate' in newItem) { newItem.start_date = newItem.startDate; delete newItem.startDate; }
+  if ('endDate' in newItem) { newItem.end_date = newItem.endDate; delete newItem.endDate; }
+  if ('totalAmount' in newItem) { newItem.total_amount = newItem.totalAmount; delete newItem.totalAmount; }
+  if ('reportSnapshot' in newItem) { newItem.report_snapshot = newItem.reportSnapshot; delete newItem.reportSnapshot; }
   return newItem;
 }
 

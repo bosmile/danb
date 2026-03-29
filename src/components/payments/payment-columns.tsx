@@ -48,7 +48,8 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
     cell: ({ row }) => {
         const startDate = row.original.startDate;
         const endDate = row.original.endDate;
-        return `${format(new Date(startDate), 'dd/MM/yy')} - ${format(new Date(endDate), 'dd/MM/yy')}`;
+        const formatStr = (d: any) => d && !isNaN(new Date(d).getTime()) ? format(new Date(d), 'dd/MM/yy') : '??/??/??';
+        return `${formatStr(startDate)} - ${formatStr(endDate)}`;
     },
     sortingFn: 'datetime'
   },
