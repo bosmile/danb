@@ -7,11 +7,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials missing. Data loading will fail until configured.');
 }
 
-// Export the client for more advanced queries
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Export the client for more advanced queries. 
+// Note: createClient will throw if url is empty. 
+// Using a placeholder if missing to avoid crashing on import, though queries will still fail.
+export const supabase = createClient(
+    supabaseUrl || 'https://placeholder.supabase.co', 
+    supabaseAnonKey || 'placeholder'
+);
 
 // Helper to convert snake_case DB object to camelCase App object
-function fromDB(item: any) {
+export function fromDB(item: any) {
   if (!item) return item;
   const newItem = { ...item };
   if (newItem.hasOwnProperty('created_at')) { newItem.createdAt = newItem.created_at; delete newItem.created_at; }
@@ -20,11 +25,12 @@ function fromDB(item: any) {
   if (newItem.hasOwnProperty('start_date')) { newItem.startDate = newItem.start_date; delete newItem.start_date; }
   if (newItem.hasOwnProperty('end_date')) { newItem.endDate = newItem.end_date; delete newItem.endDate; }
   if (newItem.hasOwnProperty('total_amount')) { newItem.totalAmount = newItem.total_amount; delete newItem.total_amount; }
+  if (newItem.hasOwnProperty('report_snapshot')) { newItem.reportSnapshot = newItem.report_snapshot; delete newItem.report_snapshot; }
   return newItem;
 }
 
 // Helper to convert camelCase App object to snake_case DB object
-function toDB(item: any) {
+export function toDB(item: any) {
   if (!item) return item;
   const newItem = { ...item };
   if (newItem.hasOwnProperty('createdAt')) { newItem.created_at = newItem.createdAt; delete newItem.createdAt; }
@@ -33,6 +39,7 @@ function toDB(item: any) {
   if (newItem.hasOwnProperty('startDate')) { newItem.start_date = newItem.startDate; delete newItem.startDate; }
   if (newItem.hasOwnProperty('endDate')) { newItem.end_date = newItem.endDate; delete newItem.endDate; }
   if (newItem.hasOwnProperty('totalAmount')) { newItem.total_amount = newItem.totalAmount; delete newItem.totalAmount; }
+  if (newItem.hasOwnProperty('reportSnapshot')) { newItem.report_snapshot = newItem.reportSnapshot; delete newItem.reportSnapshot; }
   return newItem;
 }
 

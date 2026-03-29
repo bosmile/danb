@@ -26,7 +26,8 @@ const CategoryBadge = ({ category }: { category: InvoiceSerializable['category']
 };
 
 export function InvoiceCard({ invoice, onDelete }: { invoice: InvoiceSerializable; onDelete: (id: string) => void }) {
-  const places = [...new Set(invoice.items.map(item => item.receivingPlace))];
+  const items = invoice.items || [];
+  const places = [...new Set(items.map(item => item.receivingPlace))];
   const placeText = places.length === 0 ? '' : places.length === 1 ? places[0] : 'Nhiều nơi';
   
   return (

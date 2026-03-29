@@ -23,13 +23,7 @@ export async function getInvoices(startDate?: Date, endDate?: Date): Promise<Inv
     
     if (error) throw error;
     
-    return (data || []).map(item => {
-        const mapped = { ...item };
-        if (mapped.created_at) mapped.createdAt = mapped.created_at;
-        if (mapped.grand_total) mapped.grandTotal = mapped.grand_total;
-        if (mapped.image_url) mapped.imageUrl = mapped.image_url;
-        return mapped as InvoiceSerializable;
-    });
+    return (data || []).map(item => db.fromDB(item)) as InvoiceSerializable[];
   } catch (err) {
     console.error("Error in getInvoices action:", err);
     throw err;

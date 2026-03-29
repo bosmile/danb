@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 export default function DashboardPage() {
   const [invoices, setInvoices] = useState<InvoiceSerializable[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<InvoiceSerializable[]>([]);
-  const [startDate, setStartDate] = useState<Date | undefined>(startOfYear(new Date()));
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date(2025, 0, 1));
   const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
