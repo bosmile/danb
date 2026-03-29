@@ -1,0 +1,992 @@
+[
+  {
+    "id": "1mcX3IP4XjQHSJSWCwIV",
+    "category": "SPLZD",
+    "createdAt": "2026-01-14T12:38:43.799Z",
+    "buyer": "Hà",
+    "date": "2026-01-14T12:39:55.418Z",
+    "notes": "",
+    "grandTotal": 1890000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "items": [
+      {
+        "receivingPlace": "NĐ",
+        "price": 105000,
+        "total": 1890000,
+        "quantity": 18,
+        "productName": "Carefor 3.6 lít"
+      }
+    ]
+  },
+  {
+    "id": "3CyipR1CnXJvm5CQO927",
+    "notes": "",
+    "buyer": "Hà",
+    "createdAt": "2025-12-28T03:18:55.728Z",
+    "date": "2025-12-15T17:00:00.000Z",
+    "category": "BIGC",
+    "items": [
+      {
+        "total": 320000,
+        "price": 6400,
+        "receivingPlace": "HN",
+        "productName": "Xốt thịt kho Chinsu",
+        "quantity": 50
+      },
+      {
+        "price": 6000,
+        "receivingPlace": "HN",
+        "total": 360000,
+        "productName": "Xốt xá xíu Cholimex",
+        "quantity": 60
+      },
+      {
+        "receivingPlace": "HN",
+        "price": 119000,
+        "total": 2380000,
+        "productName": "SRM Simple tặng NTT",
+        "quantity": 20
+      },
+      {
+        "price": 119000,
+        "receivingPlace": "HN",
+        "total": 2499000,
+        "quantity": 21,
+        "productName": "Dưỡng thể Vaseline tặng NTT"
+      }
+    ],
+    "receivingPlace": "HN",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 5559000
+  },
+  {
+    "id": "3yAIRWN3qcJekP5129HX",
+    "items": [
+      {
+        "productName": "Chivas 12",
+        "quantity": 6,
+        "receivingPlace": "HN",
+        "price": 550000,
+        "total": 3300000
+      },
+      {
+        "receivingPlace": "HN",
+        "price": 680000,
+        "total": 1360000,
+        "quantity": 2,
+        "productName": "Chivas 12 Hộp quà"
+      },
+      {
+        "price": 1200000,
+        "total": 7200000,
+        "receivingPlace": "HN",
+        "quantity": 6,
+        "productName": "Chivas 18"
+      },
+      {
+        "total": 2660000,
+        "receivingPlace": "HN",
+        "price": 1330000,
+        "quantity": 2,
+        "productName": "Chivas 18 Hộp quà"
+      },
+      {
+        "productName": "John đỏ Hộp quà",
+        "quantity": 6,
+        "price": 420000,
+        "total": 2520000,
+        "receivingPlace": "HN"
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 17040000,
+    "date": "2026-01-29T07:11:50.444Z",
+    "buyer": "Hà",
+    "category": "OTHER",
+    "createdAt": "2026-01-29T07:14:26.940Z"
+  },
+  {
+    "id": "6PKY7TwwH7Q1L0vqjmZM",
+    "grandTotal": 1750000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "items": [
+      {
+        "total": 1750000,
+        "price": 35000,
+        "receivingPlace": "HN",
+        "quantity": 50,
+        "productName": "Nêm Neptune 850g"
+      }
+    ],
+    "category": "BIGC",
+    "createdAt": "2025-12-29T08:09:41.834Z",
+    "buyer": "Hà",
+    "date": "2025-12-29T08:09:28.312Z",
+    "notes": ""
+  },
+  {
+    "id": "84arWYE1X9c8uH64iRL3",
+    "buyer": "Hà",
+    "date": "2026-01-15T10:40:01.225Z",
+    "category": "SPLZD",
+    "createdAt": "2026-01-15T10:41:02.273Z",
+    "notes": "",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 3435000,
+    "items": [
+      {
+        "productName": "Phô mai Bò cười",
+        "quantity": 56,
+        "price": 30500,
+        "total": 1708000,
+        "receivingPlace": "NĐ"
+      },
+      {
+        "quantity": 7,
+        "productName": "Sữa Oggi 900g",
+        "total": 1727000,
+        "receivingPlace": "HN",
+        "price": 246714.2857142857
+      }
+    ]
+  },
+  {
+    "id": "8w886NSNQoTtCk2xUGsw",
+    "items": [
+      {
+        "quantity": 2,
+        "productName": "sữa Hilo",
+        "price": 375000,
+        "total": 750000,
+        "receivingPlace": "NĐ"
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 750000,
+    "notes": "",
+    "date": "2025-12-23T17:00:00.000Z",
+    "buyer": "Hằng",
+    "category": "SPLZD",
+    "createdAt": "2025-12-29T08:52:40.410Z"
+  },
+  {
+    "id": "BaTGYGjXKIIqfQKJiqr8",
+    "grandTotal": 3888000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "receivingPlace": "HN",
+    "items": [
+      {
+        "price": 648000,
+        "receivingPlace": "HN",
+        "total": 3888000,
+        "productName": "Giấy in nhiệt",
+        "quantity": 6
+      }
+    ],
+    "category": "OTHER",
+    "date": "2025-12-21T17:00:00.000Z",
+    "createdAt": "2025-12-28T03:01:30.260Z",
+    "buyer": "Hằng",
+    "notes": ""
+  },
+  {
+    "id": "C3p7bA86Ic2ifBDdL4Ed",
+    "notes": "",
+    "createdAt": "2025-12-28T02:59:25.995Z",
+    "buyer": "Hằng",
+    "category": "SPLZD",
+    "date": "2025-12-22T17:00:00.000Z",
+    "items": [
+      {
+        "productName": "3 bỉm bobby tặng bỉm/chảo",
+        "quantity": 2,
+        "price": 656000,
+        "receivingPlace": "NĐ",
+        "total": 1312000
+      },
+      {
+        "productName": "20 gói xốt thịt cholimex tặng 1",
+        "quantity": 3,
+        "receivingPlace": "NĐ",
+        "price": 124000,
+        "total": 372000
+      }
+    ],
+    "grandTotal": 1684000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "receivingPlace": "NĐ"
+  },
+  {
+    "id": "DtvpIOvKWP46Zg50yIiF",
+    "category": "OTHER",
+    "createdAt": "2026-01-21T14:30:00.734Z",
+    "buyer": "Hà",
+    "date": "2025-11-26T17:00:00.000Z",
+    "items": [
+      {
+        "productName": "Công nợ cũ",
+        "quantity": 1,
+        "price": 34420000,
+        "total": 34420000,
+        "receivingPlace": "HN"
+      }
+    ],
+    "grandTotal": 34420000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600"
+  },
+  {
+    "id": "FNeJMdmUO3nvkQwk6JzO",
+    "notes": "",
+    "buyer": "Hà",
+    "date": "2025-12-26T17:00:00.000Z",
+    "category": "SPLZD",
+    "createdAt": "2025-12-29T08:11:17.267Z",
+    "items": [
+      {
+        "quantity": 15,
+        "productName": "2 mắm nam ngư 900ml",
+        "price": 85600,
+        "total": 1284000,
+        "receivingPlace": "NĐ"
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 1284000
+  },
+  {
+    "id": "FZjJihpzYyiLt96fNfBj",
+    "category": "SPLZD",
+    "date": "2025-12-27T15:54:56.481Z",
+    "items": [
+      {
+        "total": 738000,
+        "price": 123000,
+        "receivingPlace": "NĐ",
+        "productName": "20 gói xốt thịt cholimex tặng 1",
+        "quantity": 6
+      }
+    ],
+    "grandTotal": 738000,
+    "receivingPlace": "NĐ",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "notes": "",
+    "createdAt": "2025-12-27T15:54:06.597Z",
+    "buyer": "Hà"
+  },
+  {
+    "id": "GtQZfZuQGB2JvyprauJH",
+    "date": "2025-12-22T17:00:00.000Z",
+    "category": "SPLZD",
+    "items": [
+      {
+        "price": 124000,
+        "total": 248000,
+        "receivingPlace": "HN",
+        "productName": "Bàn chải colgate 5 tặng 5",
+        "quantity": 2
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "receivingPlace": "HN",
+    "grandTotal": 248000,
+    "notes": "",
+    "buyer": "Hằng",
+    "createdAt": "2025-12-28T03:00:43.307Z"
+  },
+  {
+    "id": "HpyGjVMEPk8ZQw2oNn50",
+    "notes": "",
+    "buyer": "Hà",
+    "createdAt": "2025-12-28T03:02:42.411Z",
+    "date": "2025-12-26T17:00:00.000Z",
+    "category": "BIGC",
+    "items": [
+      {
+        "productName": "Nêm Neptune 850g",
+        "quantity": 50,
+        "price": 35000,
+        "receivingPlace": "HN",
+        "total": 1750000
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "receivingPlace": "HN",
+    "grandTotal": 1750000
+  },
+  {
+    "id": "O26lnCMfSJBYCJUOY0HH",
+    "buyer": "Hà",
+    "date": "2025-12-28T05:05:52.088Z",
+    "createdAt": "2025-12-28T05:04:28.714Z",
+    "category": "OTHER",
+    "notes": "",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 300000,
+    "items": [
+      {
+        "quantity": 1,
+        "productName": "Bàn phím, chuột",
+        "price": 300000,
+        "total": 300000,
+        "receivingPlace": "HN"
+      }
+    ]
+  },
+  {
+    "id": "TxMFayYnIBRl2wp0pDGx",
+    "buyer": "Hà",
+    "date": "2026-01-05T11:17:18.194Z",
+    "category": "SPLZD",
+    "createdAt": "2026-01-05T11:20:54.794Z",
+    "notes": "",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 3060600,
+    "items": [
+      {
+        "total": 543600,
+        "receivingPlace": "NĐ",
+        "price": 90600,
+        "productName": "6 bịch giấy rút topgia",
+        "quantity": 6
+      },
+      {
+        "receivingPlace": "NĐ",
+        "total": 97000,
+        "price": 97000,
+        "productName": "6 bịch giấy rút topgia",
+        "quantity": 1
+      },
+      {
+        "total": 400000,
+        "receivingPlace": "NĐ",
+        "price": 100000,
+        "quantity": 4,
+        "productName": "6 bịch giấy rút topgia"
+      },
+      {
+        "productName": "6 bịch giấy rút topgia",
+        "quantity": 6,
+        "price": 98333.33333333333,
+        "receivingPlace": "NĐ",
+        "total": 590000
+      },
+      {
+        "productName": "10 giấy ướt topgia tặng 20 gói mini",
+        "quantity": 9,
+        "price": 158888.88888888888,
+        "receivingPlace": "NĐ",
+        "total": 1430000
+      }
+    ]
+  },
+  {
+    "id": "VfQDomPTut3tQ1lh0cng",
+    "items": [
+      {
+        "total": 2100000,
+        "price": 35000,
+        "receivingPlace": "HN",
+        "quantity": 60,
+        "productName": "Nêm Neptune 850g"
+      }
+    ],
+    "grandTotal": 2100000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "createdAt": "2026-01-28T16:04:25.655Z",
+    "category": "BIGC",
+    "buyer": "Hà",
+    "date": "2026-01-28T16:03:58.686Z"
+  },
+  {
+    "id": "YGZb59PW9n7hYKs1JY0x",
+    "items": [
+      {
+        "price": 250000,
+        "total": 1000000,
+        "receivingPlace": "HN",
+        "quantity": 4,
+        "productName": "Oggi 900g tặng 1 vỉ 110ml"
+      }
+    ],
+    "grandTotal": 1000000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "category": "SPLZD",
+    "createdAt": "2026-02-04T14:38:36.178Z",
+    "buyer": "Hà",
+    "date": "2026-02-04T14:37:55.880Z"
+  },
+  {
+    "id": "YPTvY4KODl8CfEMgug96",
+    "items": [
+      {
+        "productName": "Phô mai vinamilk 8 miếng",
+        "quantity": 30,
+        "total": 804000,
+        "receivingPlace": "HN",
+        "price": 26800
+      },
+      {
+        "price": 27777.777777777777,
+        "total": 1000000,
+        "receivingPlace": "HN",
+        "quantity": 36,
+        "productName": "Tương Maggi tặng chai nhỏ"
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 1804000,
+    "date": "2026-01-24T14:13:50.781Z",
+    "buyer": "Hà",
+    "category": "BIGC",
+    "createdAt": "2026-01-24T14:15:40.548Z"
+  },
+  {
+    "id": "ZM1uldZuhXcZgOYEn0IS",
+    "buyer": "Hà",
+    "date": "2026-03-20T03:02:48.887Z",
+    "createdAt": "2026-03-20T03:17:53.403Z",
+    "category": "SPLZD",
+    "items": [
+      {
+        "price": 153.76,
+        "receivingPlace": "HN",
+        "total": 3844,
+        "quantity": 25,
+        "productName": "Senka xanh (2 tặng 1 vàng)"
+      },
+      {
+        "receivingPlace": "NĐ",
+        "price": 106.4375,
+        "total": 3406,
+        "quantity": 32,
+        "productName": "Carefor 3.6 lít"
+      },
+      {
+        "quantity": 32,
+        "productName": "Carefor 2 lít",
+        "receivingPlace": "NĐ",
+        "price": 49750,
+        "total": 1592000
+      },
+      {
+        "price": 89500,
+        "total": 8681500,
+        "receivingPlace": "NĐ",
+        "productName": "2 mắm nam ngư 900ml",
+        "quantity": 97
+      },
+      {
+        "price": 195000,
+        "total": 390000,
+        "receivingPlace": "NĐ",
+        "productName": "Milo bé",
+        "quantity": 2
+      },
+      {
+        "productName": "Sữa cao đạm VNM",
+        "quantity": 12,
+        "receivingPlace": "NĐ",
+        "total": 3120000,
+        "price": 260000
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 13790750
+  },
+  {
+    "id": "dJc1FUHIMakUeOuS8jAp",
+    "category": "SPLZD",
+    "createdAt": "2026-01-21T13:47:13.402Z",
+    "buyer": "Hà",
+    "date": "2026-01-21T13:47:40.677Z",
+    "items": [
+      {
+        "total": 2540000,
+        "receivingPlace": "HN",
+        "price": 254000,
+        "quantity": 10,
+        "productName": "Sữa Oggi 900g"
+      },
+      {
+        "total": 2145000,
+        "receivingPlace": "NĐ",
+        "price": 42900,
+        "productName": "mắm nam ngư 900ml",
+        "quantity": 50
+      },
+      {
+        "productName": "Bàn chải colgate 5 tặng 5",
+        "quantity": 2,
+        "receivingPlace": "HN",
+        "price": 143000,
+        "total": 286000
+      }
+    ],
+    "grandTotal": 4971000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600"
+  },
+  {
+    "id": "dPsGqR1kVXrQc87vp9Cj",
+    "grandTotal": 470000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "receivingPlace": "HN",
+    "items": [
+      {
+        "price": 9791.666666666666,
+        "total": 235000,
+        "receivingPlace": "HN",
+        "quantity": 24,
+        "productName": "Muối ớt xanh Chinsu"
+      },
+      {
+        "price": 9791.666666666666,
+        "total": 235000,
+        "receivingPlace": "HN",
+        "quantity": 24,
+        "productName": "Muối ớt đỏ Chinsu"
+      }
+    ],
+    "category": "BIGC",
+    "date": "2025-12-25T17:00:00.000Z",
+    "createdAt": "2025-12-28T03:21:48.958Z",
+    "buyer": "Hà",
+    "notes": ""
+  },
+  {
+    "id": "ihKLoTWMfDnDXDKYQawK",
+    "buyer": "Hằng",
+    "date": "2026-03-20T02:55:02.968Z",
+    "category": "SPLZD",
+    "createdAt": "2026-03-20T02:59:55.035Z",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 15094000,
+    "items": [
+      {
+        "productName": "Carefor 3.6 lít",
+        "quantity": 10,
+        "price": 105500,
+        "total": 1055000,
+        "receivingPlace": "NĐ"
+      },
+      {
+        "quantity": 4,
+        "productName": "Senka xanh (2 tặng 1 vàng)",
+        "receivingPlace": "NĐ",
+        "total": 600000,
+        "price": 150000
+      },
+      {
+        "productName": "senka hồng (2 tặng 1 vàng)",
+        "quantity": 12,
+        "price": 147166.66666666666,
+        "receivingPlace": "NĐ",
+        "total": 1766000
+      },
+      {
+        "quantity": 53,
+        "productName": "Bông tẩy trang",
+        "receivingPlace": "NĐ",
+        "price": 22132.075471698114,
+        "total": 1173000
+      },
+      {
+        "quantity": 8,
+        "productName": "Milo bé",
+        "receivingPlace": "NĐ",
+        "total": 1559000,
+        "price": 194875
+      },
+      {
+        "productName": "2 mắm nam ngư 900ml",
+        "quantity": 75,
+        "receivingPlace": "NĐ",
+        "price": 90920,
+        "total": 6819000
+      },
+      {
+        "price": 261333.33333333334,
+        "receivingPlace": "NĐ",
+        "total": 784000,
+        "quantity": 3,
+        "productName": "Sữa cao đạm VNM"
+      },
+      {
+        "total": 178000,
+        "price": 89000,
+        "receivingPlace": "NĐ",
+        "productName": "Sữa tắm Johnson ",
+        "quantity": 2
+      },
+      {
+        "receivingPlace": "HN",
+        "price": 290000,
+        "total": 1160000,
+        "quantity": 4,
+        "productName": "Bánh oreo Mini thùng"
+      }
+    ]
+  },
+  {
+    "id": "j75RsGAUmfffoMT7YAcz",
+    "notes": "NĐ, mẹ nhận 40 chai",
+    "category": "SPLZD",
+    "createdAt": "2025-12-29T03:01:59.580Z",
+    "buyer": "Hằng",
+    "date": "2025-12-23T17:00:00.000Z",
+    "items": [
+      {
+        "quantity": 30,
+        "productName": "mắm nam ngư 900ml",
+        "price": 42800,
+        "total": 1284000,
+        "receivingPlace": "NĐ"
+      }
+    ],
+    "grandTotal": 1284000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600"
+  },
+  {
+    "id": "jU84Zdz3WgfreGKUrcI0",
+    "items": [
+      {
+        "quantity": 200,
+        "productName": "Bánh Pretz",
+        "price": 8325,
+        "total": 1665000,
+        "receivingPlace": "HN"
+      },
+      {
+        "productName": "Milo hộp 400g tặng chảo",
+        "quantity": 40,
+        "receivingPlace": "HN",
+        "total": 2420000,
+        "price": 60500
+      },
+      {
+        "receivingPlace": "HN",
+        "price": 78500,
+        "total": 2276500,
+        "productName": "Ami 2 tặng 1",
+        "quantity": 29
+      },
+      {
+        "quantity": 60,
+        "productName": "Mayonaise 260g",
+        "price": 26000,
+        "total": 1560000,
+        "receivingPlace": "HN"
+      }
+    ],
+    "grandTotal": 7921500,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "notes": "",
+    "createdAt": "2026-01-10T06:57:59.292Z",
+    "category": "BIGC",
+    "buyer": "Hà",
+    "date": "2026-01-10T06:53:47.552Z"
+  },
+  {
+    "id": "oVek69XBJhmGqniVmJaG",
+    "items": [
+      {
+        "productName": "20 gói xốt thịt cholimex",
+        "quantity": 8,
+        "price": 113875,
+        "total": 911000,
+        "receivingPlace": "NĐ"
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 911000,
+    "notes": "",
+    "buyer": "Hằng",
+    "date": "2025-12-24T17:00:00.000Z",
+    "createdAt": "2025-12-29T08:55:06.739Z",
+    "category": "SPLZD"
+  },
+  {
+    "id": "s9PRlt7pQ4V6ZqFodT8z",
+    "buyer": "Hằng",
+    "createdAt": "2025-12-28T02:57:04.148Z",
+    "notes": "",
+    "receivingPlace": "NĐ",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 20469000,
+    "items": [
+      {
+        "quantity": 16,
+        "productName": "Sữa cao đạm VNM",
+        "total": 4112000,
+        "price": 257000,
+        "receivingPlace": "NĐ"
+      },
+      {
+        "quantity": 9,
+        "productName": "Sữa 9 loại hạt VNM",
+        "price": 212666.66666666666,
+        "total": 1914000,
+        "receivingPlace": "NĐ"
+      },
+      {
+        "productName": "NTT Bioderma",
+        "quantity": 6,
+        "total": 1309000,
+        "receivingPlace": "NĐ",
+        "price": 218166.66666666666
+      },
+      {
+        "total": 13134000,
+        "price": 820875,
+        "receivingPlace": "NĐ",
+        "productName": "Anlene 2 to 1 nhỏ",
+        "quantity": 16
+      }
+    ],
+    "date": "2025-12-15T17:00:00.000Z",
+    "category": "SPLZD"
+  },
+  {
+    "id": "t5nJa4wZ4M1f4LPqBGro",
+    "items": [
+      {
+        "productName": "Nêm chinsu 900g tặng tương ớt",
+        "quantity": 96,
+        "total": 5280000,
+        "price": 55000,
+        "receivingPlace": "HN"
+      }
+    ],
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 5280000,
+    "buyer": "Hà",
+    "date": "2026-02-05T06:41:53.984Z",
+    "createdAt": "2026-02-05T06:42:25.024Z",
+    "category": "BIGC"
+  },
+  {
+    "id": "uOo4X9J9NNINqjdtaogu",
+    "date": "2025-12-27T14:49:55.456Z",
+    "buyer": "Hà",
+    "createdAt": "2025-12-27T15:04:49.360Z",
+    "category": "SPLZD",
+    "receivingPlace": "HN",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 26976000,
+    "items": [
+      {
+        "receivingPlace": "NĐ",
+        "total": 3900000,
+        "price": 650000,
+        "productName": "3 bỉm bobby tặng bỉm/chảo",
+        "quantity": 6
+      },
+      {
+        "total": 813000,
+        "price": 271000,
+        "receivingPlace": "HN",
+        "quantity": 3,
+        "productName": "2 srm inisfree"
+      },
+      {
+        "receivingPlace": "HN",
+        "price": 108000,
+        "total": 108000,
+        "quantity": 1,
+        "productName": "2 wakeup tặng muối chinsu"
+      },
+      {
+        "price": 486000,
+        "receivingPlace": "HN",
+        "total": 5832000,
+        "productName": "Sure gold 800g",
+        "quantity": 12
+      },
+      {
+        "quantity": 11,
+        "productName": "Sữa 9 loại hạt VNM",
+        "price": 215000,
+        "receivingPlace": "NĐ",
+        "total": 2365000
+      },
+      {
+        "total": 1020000,
+        "price": 255000,
+        "receivingPlace": "NĐ",
+        "quantity": 4,
+        "productName": "Sữa cao đạm VNM"
+      },
+      {
+        "quantity": 2,
+        "productName": "Sure gold 800g",
+        "total": 945000,
+        "price": 472500,
+        "receivingPlace": "HN"
+      },
+      {
+        "price": 486000,
+        "receivingPlace": "HN",
+        "total": 5832000,
+        "quantity": 12,
+        "productName": "Sure gold 800g"
+      },
+      {
+        "total": 3273000,
+        "price": 818250,
+        "receivingPlace": "HN",
+        "quantity": 4,
+        "productName": "Anlene 2 to 1 nhỏ"
+      },
+      {
+        "price": 215000,
+        "total": 2150000,
+        "receivingPlace": "NĐ",
+        "productName": "Sữa 9 loại hạt VNM",
+        "quantity": 10
+      },
+      {
+        "quantity": 3,
+        "productName": "Bàn chải colgate 5 tặng 5",
+        "total": 369000,
+        "price": 123000,
+        "receivingPlace": "HN"
+      },
+      {
+        "receivingPlace": "NĐ",
+        "total": 369000,
+        "price": 123000,
+        "quantity": 3,
+        "productName": "20 gói xốt thịt cholimex tặng 1"
+      }
+    ]
+  },
+  {
+    "id": "uk49ZdrsTrZkJtgwhtwU",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "grandTotal": 5582000,
+    "items": [
+      {
+        "receivingPlace": "NĐ",
+        "total": 3795000,
+        "price": 42166.666666666664,
+        "productName": "mắm nam ngư 900ml",
+        "quantity": 90
+      },
+      {
+        "price": 143000,
+        "receivingPlace": "HN",
+        "total": 572000,
+        "productName": "Bàn chải colgate 5 tặng 5",
+        "quantity": 4
+      },
+      {
+        "productName": "Phô mai Bò cười",
+        "quantity": 39,
+        "total": 1215000,
+        "price": 31153.846153846152,
+        "receivingPlace": "NĐ"
+      }
+    ],
+    "date": "2026-01-21T13:44:11.978Z",
+    "buyer": "Hằng",
+    "createdAt": "2026-01-21T13:43:13.137Z",
+    "category": "SPLZD"
+  },
+  {
+    "id": "w68dsivgF6Tn1uW7hN9H",
+    "grandTotal": 1975000,
+    "receivingPlace": "HN",
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "items": [
+      {
+        "quantity": 3,
+        "productName": "2 srm inisfree",
+        "price": 271000,
+        "total": 813000,
+        "receivingPlace": "HN"
+      },
+      {
+        "total": 946000,
+        "price": 473000,
+        "receivingPlace": "HN",
+        "productName": "Sure gold 800g",
+        "quantity": 2
+      },
+      {
+        "quantity": 2,
+        "productName": "2 wakeup tặng muối chinsu",
+        "price": 108000,
+        "total": 216000,
+        "receivingPlace": "HN"
+      }
+    ],
+    "category": "SPLZD",
+    "date": "2025-12-15T17:00:00.000Z",
+    "createdAt": "2025-12-28T02:54:16.822Z",
+    "buyer": "Hằng",
+    "notes": ""
+  },
+  {
+    "id": "wRuaLRmYuuXVaVk2Mql4",
+    "createdAt": "2026-01-21T13:40:20.996Z",
+    "category": "BIGC",
+    "buyer": "Hà",
+    "date": "2026-01-20T17:00:00.000Z",
+    "items": [
+      {
+        "price": 30900,
+        "receivingPlace": "HN",
+        "total": 2472000,
+        "quantity": 80,
+        "productName": "Nescafe sữa đá 10x24g"
+      },
+      {
+        "productName": "Bàn chải colgate 5 tặng 5",
+        "quantity": 5,
+        "price": 149000,
+        "total": 745000,
+        "receivingPlace": "HN"
+      }
+    ],
+    "grandTotal": 3217000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600"
+  },
+  {
+    "id": "zisk9GW77dr4tGcMaK0z",
+    "category": "BIGC",
+    "createdAt": "2026-03-20T04:17:39.662Z",
+    "buyer": "Hà",
+    "date": "2026-03-20T04:15:54.925Z",
+    "grandTotal": 10151000,
+    "imageUrl": "https://picsum.photos/seed/placeholder/400/600",
+    "items": [
+      {
+        "productName": "Nêm chinsu 900g tặng tương ớt",
+        "quantity": 100,
+        "receivingPlace": "HN",
+        "price": 49500,
+        "total": 4950000
+      },
+      {
+        "quantity": 30,
+        "productName": "Ami 2 tặng 1",
+        "receivingPlace": "HN",
+        "total": 2355000,
+        "price": 78500
+      },
+      {
+        "productName": "Tương Maggi tặng chai nhỏ",
+        "quantity": 96,
+        "total": 2256000,
+        "price": 23500,
+        "receivingPlace": "HN"
+      },
+      {
+        "productName": "sữa tắm dê 1 lít",
+        "quantity": 10,
+        "receivingPlace": "HN",
+        "price": 59000,
+        "total": 590000
+      }
+    ]
+  }
+]

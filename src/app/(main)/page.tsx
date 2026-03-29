@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { getInvoices } from '@/lib/actions/invoices';
 import { InvoiceTable } from '@/components/invoices/invoice-table';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfYear } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 export default function DashboardPage() {
   const [invoices, setInvoices] = useState<InvoiceSerializable[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<InvoiceSerializable[]>([]);
-  const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(new Date()));
+  const [startDate, setStartDate] = useState<Date | undefined>(startOfYear(new Date()));
   const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
