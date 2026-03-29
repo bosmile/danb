@@ -7,6 +7,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials missing. Data loading will fail until configured.');
 }
 
+// Export the client for more advanced queries
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Helper to convert snake_case DB object to camelCase App object

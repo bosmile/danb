@@ -3,24 +3,33 @@
 import { revalidatePath } from 'next/cache';
 import type { InvoiceSerializable } from '@/types';
 import * as db from '@/lib/db';
+import { supabase } from '@/lib/db';
 import { saveImage, deleteImage } from '@/lib/storage';
 
 const COLLECTION = 'invoices';
 
 export async function getInvoices(startDate?: Date, endDate?: Date): Promise<InvoiceSerializable[]> {
   try {
-    const items = await db.readCollection<InvoiceSerializable>(COLLECTION);
-    
-    let filtered = [...items];
+    let query = supabase.from(COLLECTION).select('*');
     
     if (startDate) {
-      filtered = filtered.filter(item => new Date(item.date) >= startDate);
+      query = query.gte('date', startDate.toISOString());
     }
     if (endDate) {
-      filtered = filtered.filter(item => new Date(item.date) <= endDate);
+      query = query.lte('date', endDate.toISOString());
     }
 
-    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const { data, error } = await query.order('date', { ascending: false });
+    
+    if (error) throw error;
+    
+    return (data || []).map(item => {
+        const mapped = { ...item };
+        if (mapped.created_at) mapped.createdAt = mapped.created_at;
+        if (mapped.grand_total) mapped.grandTotal = mapped.grand_total;
+        if (mapped.image_url) mapped.imageUrl = mapped.image_url;
+        return mapped as InvoiceSerializable;
+    });
   } catch (err) {
     console.error("Error in getInvoices action:", err);
     throw err;
@@ -77,7 +86,7 @@ export async function updateInvoice(id: string, invoiceData: any): Promise<{succ
     }
 
     if (invoiceData.image) {
-        if (existing.imageUrl && existing.imageUrl.startsWith('/data/images/')) {
+        if (existing.imageUrl && existing.imageUrl.includes('invoices')) {
             await deleteImage(existing.imageUrl);
         }
         updateData.imageUrl = await saveImage(invoiceData.image);
@@ -99,7 +108,7 @@ export async function updateInvoice(id: string, invoiceData: any): Promise<{succ
 export async function deleteInvoice(id: string): Promise<{success: boolean, error?: string}> {
   try {
     const existing = await db.getItemById<InvoiceSerializable>(COLLECTION, id);
-    if (existing?.imageUrl && existing.imageUrl.startsWith('/data/images/')) {
+    if (existing?.imageUrl && existing.imageUrl.includes('invoices')) {
         await deleteImage(existing.imageUrl);
     }
     

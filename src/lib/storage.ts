@@ -1,43 +1,52 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { crypto } from 'next/dist/compiled/@edge-runtime/primitives'; // For Edge/Node compatibility
+import { supabase } from './db';
 
-const STORAGE_DIR = path.join(process.cwd(), 'public', 'data', 'images');
+const BUCKET = 'invoices';
+const PROJECT_ID = 'flqdcuftonmghcjdqxej';
 
 export async function ensureStorageDir() {
-  try {
-    await fs.access(STORAGE_DIR);
-  } catch {
-    await fs.mkdir(STORAGE_DIR, { recursive: true });
-  }
+    // No-op for Supabase Storage
 }
 
 export async function saveImage(file: File | string): Promise<string> {
-  await ensureStorageDir();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.png`;
-  const filePath = path.join(STORAGE_DIR, fileName);
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.png`;
+    let fileBody: any;
+    let contentType = 'image/png';
 
-  if (typeof file === 'string' && file.startsWith('data:image')) {
-    // Base64 handling
-    const base64Data = file.split(',')[1];
-    await fs.writeFile(filePath, base64Data, 'base64');
-  } else if (file instanceof File) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(filePath, buffer);
-  } else {
-    throw new Error('Invalid image format');
-  }
+    if (typeof file === 'string' && file.startsWith('data:image')) {
+        // Base64 handling
+        const base64Data = file.split(',')[1];
+        fileBody = Buffer.from(base64Data, 'base64');
+    } else if (file instanceof File) {
+        fileBody = await file.arrayBuffer();
+        contentType = file.type;
+    } else {
+        throw new Error('Invalid image format');
+    }
 
-  return `/data/images/${fileName}`;
+    const { data, error } = await supabase.storage
+        .from(BUCKET)
+        .upload(fileName, fileBody, {
+            contentType,
+            upsert: true
+        });
+
+    if (error) {
+        console.error('Error uploading to Supabase Storage:', error);
+        return `https://picsum.photos/seed/${fileName}/400/600`;
+    }
+
+    return `https://${PROJECT_ID}.supabase.co/storage/v1/object/public/${BUCKET}/${fileName}`;
 }
 
 export async function deleteImage(imageUrl: string) {
-  if (!imageUrl.startsWith('/data/images/')) return;
-  const fileName = path.basename(imageUrl);
-  const filePath = path.join(STORAGE_DIR, fileName);
-  try {
-    await fs.unlink(filePath);
-  } catch (error) {
-    console.warn(`Failed to delete image: ${filePath}`, error);
-  }
+    if (!imageUrl.includes(BUCKET)) return;
+    
+    try {
+        const fileName = imageUrl.split('/').pop();
+        if (fileName) {
+            await supabase.storage.from(BUCKET).remove([fileName]);
+        }
+    } catch (error) {
+        console.warn(`Failed to delete Supabase image: ${imageUrl}`, error);
+    }
 }
