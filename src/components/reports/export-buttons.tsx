@@ -20,13 +20,13 @@ export function ExportButtons({ data, filename, sheetName }: ExportButtonsProps)
     }
 
     return (
-        <div className="flex gap-2 print-hidden">
-            <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={data.length === 0}>
-                <FileDown className="mr-2 h-4 w-4" />
+        <div className="flex flex-col sm:flex-row gap-2 print-hidden w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-9 font-bold" onClick={handleExcelExport} disabled={data.length === 0}>
+                <FileDown className="mr-2 h-5 w-5 sm:h-4 sm:w-4" />
                 Xuất Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} disabled={data.length === 0}>
-                <Printer className="mr-2 h-4 w-4" />
+            <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-9 font-bold" onClick={handlePrint} disabled={data.length === 0}>
+                <Printer className="mr-2 h-5 w-5 sm:h-4 sm:w-4" />
                 In báo cáo
             </Button>
         </div>

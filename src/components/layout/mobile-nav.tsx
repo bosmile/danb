@@ -17,7 +17,7 @@ export function MobileNav({ className }: { className?: string }) {
 
   return (
     <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-sm md:hidden",
+        "fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur-md md:hidden pb-safe",
         className
       )}>
       <div className="flex h-16 items-center justify-around">
@@ -28,18 +28,15 @@ export function MobileNav({ className }: { className?: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-1 rounded-md p-2 text-muted-foreground transition-colors hover:text-primary',
-                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-600'
+                'flex flex-col items-center gap-1.5 rounded-xl px-3 py-2 transition-all active:scale-95',
+                isActive ? 'text-primary bg-primary/5' : 'text-slate-400 dark:text-slate-500'
               )}
             >
-              <item.icon className="h-5 w-5" />
-              <span className={cn("text-[10px]", isActive ? 'font-bold' : 'font-medium')}>{item.label}</span>
+              <item.icon className={cn("h-6 w-6", isActive ? "stroke-[2.5px]" : "stroke-2")} />
+              <span className={cn("text-[11px] leading-none", isActive ? 'font-bold' : 'font-medium')}>{item.label}</span>
             </Link>
           );
         })}
-      </div>
-      <div className="flex h-5 items-center justify-center pb-1">
-        <div className="h-1 w-32 rounded-full bg-slate-300 dark:bg-slate-700"></div>
       </div>
     </nav>
   );

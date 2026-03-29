@@ -22,14 +22,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Invoice, InvoiceSerializable } from '@/types';
+import type { InvoiceSerializable } from '@/types';
 import { ProductAutocomplete } from './product-autocomplete';
 import { addInvoice, updateInvoice } from '@/lib/actions/invoices';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
 import { ManualDateInput } from '../shared/manual-date-input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 const invoiceItemSchema = z.object({
     productName: z.string().min(1, { message: 'Tên sản phẩm không được để trống.' }),
@@ -39,11 +49,7 @@ const invoiceItemSchema = z.object({
     receivingPlace: z.enum(['NĐ', 'HN'], {
       required_error: 'Vui lòng chọn nơi nhận.',
     }),
-}).refine(data => data.price >= 0, {
-    message: "Đơn giá không được âm.",
-    path: ["price"],
 });
-
 
 const formSchema = z.object({
   category: z.enum(['BIGC', 'SPLZD', 'OTHER'], {
@@ -60,12 +66,39 @@ const formSchema = z.object({
 type InvoiceFormData = z.infer<typeof formSchema>;
 
 type InvoiceFormProps = {
-  invoiceToEdit?: InvoiceSerializable & { receivingPlace?: 'NĐ' | 'HN' }; // old data might have this
+  invoiceToEdit?: InvoiceSerializable & { receivingPlace?: 'NĐ' | 'HN' };
   loading?: boolean;
 };
 
+// Shopee Parser
+function parseShopeeOrder(text: string) {
+    const items: any[] = [];
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // Match price like ₫45.000 x 2 or 123.000đ x 1
+        const priceMatch = line.match(/(?:₫|đ)?([\d.]+)(?:₫|đ)?\s*x\s*(\d+)/i);
+        if (priceMatch && i > 0) {
+            const productName = lines[i-1];
+            const price = parseInt(priceMatch[1].replace(/\./g, ''));
+            const quantity = parseInt(priceMatch[2]);
+            items.push({
+                productName,
+                price: price,
+                quantity: quantity,
+                total: price * quantity,
+                receivingPlace: 'NĐ'
+            });
+        }
+    }
+    return items;
+}
+
 export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shopeeText, setShopeeText] = useState('');
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -80,9 +113,15 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
     },
   });
 
+  const { control, watch, setValue, trigger, reset, getValues } = form;
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'items',
+  });
+
   useEffect(() => {
     if (invoiceToEdit) {
-      form.reset({
+      reset({
         ...invoiceToEdit,
         date: new Date(invoiceToEdit.date),
         items: invoiceToEdit.items.map(item => ({
@@ -90,31 +129,24 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
             quantity: Number(item.quantity),
             price: Number(item.price),
             total: Number(item.total),
-            // If item doesn't have receivingPlace (old data), use the one from the invoice
             receivingPlace: item.receivingPlace || invoiceToEdit.receivingPlace || 'NĐ',
         })),
         grandTotal: Number(invoiceToEdit.grandTotal)
       });
     }
-  }, [invoiceToEdit, form]);
-
-  const { control, watch, setValue, trigger } = form;
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'items',
-  });
+  }, [invoiceToEdit, reset]);
 
   const watchedItems = watch('items');
 
   useEffect(() => {
     const total = watchedItems.reduce((acc, item) => acc + (item.total || 0), 0);
-    if (total !== form.getValues('grandTotal')) {
+    if (total !== getValues('grandTotal')) {
         setValue('grandTotal', total);
     }
-  }, [watchedItems, setValue, form]);
+  }, [watchedItems, setValue, getValues]);
 
   const updateItemFields = (index: number, changedField: 'price' | 'total' | 'quantity') => {
-      const item = form.getValues(`items.${index}`);
+      const item = getValues(`items.${index}`);
       if (!item || isNaN(item.quantity) || item.quantity <= 0) return;
 
       if (changedField === 'quantity' || changedField === 'price') {
@@ -127,6 +159,18 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
       trigger(`items.${index}`);
   }
 
+  const handleShopeeImport = () => {
+      const items = parseShopeeOrder(shopeeText);
+      if (items.length > 0) {
+          setValue('items', items);
+          setValue('category', 'SPLZD');
+          setIsImportDialogOpen(false);
+          setShopeeText('');
+          toast({ title: 'Thành công', description: `Đã nhập ${items.length} sản phẩm từ Shopee.` });
+      } else {
+          toast({ variant: 'destructive', title: 'Lỗi', description: 'Không tìm thấy dữ liệu sản phẩm hợp lệ. Vui lòng kiểm tra lại nội dung dán.' });
+      }
+  };
 
   const onSuccess = async () => {
     toast({ title: 'Thành công', description: `Đã ${invoiceToEdit ? 'cập nhật' : 'thêm'} hóa đơn.` });
@@ -147,7 +191,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
       if (invoiceToEdit) {
         result = await updateInvoice(invoiceToEdit.id, invoiceData);
       } else {
-        result = await addInvoice(invoiceData as Omit<Invoice, 'id' | 'createdAt'>);
+        result = await addInvoice(invoiceData);
       }
 
       if (result.success) {
@@ -174,11 +218,6 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
             <div className="sm:col-span-2">
                 <Skeleton className="h-10 w-full" />
             </div>
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <div className="sm:col-span-2">
-                <Skeleton className="h-12 w-full" />
-            </div>
         </div>
     );
   }
@@ -186,13 +225,47 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex justify-end pt-2">
+            <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button type="button" variant="outline" className="w-full sm:w-auto bg-orange-50 text-orange-600 border-orange-200 h-12 sm:h-10 hover:bg-orange-100 hover:text-orange-700 font-bold shadow-sm">
+                        <ShoppingCart className="mr-2 h-5 w-5" />
+                        Nhập từ Shopee
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Nhập dữ liệu từ Shopee</DialogTitle>
+                        <DialogDescription>
+                            Mở trang chi tiết đơn hàng Shopee trên máy tính, bôi đen toàn bộ nội dung (Ctrl+A) và dán vào đây.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Textarea 
+                            placeholder="Ví dụ:
+Dầu ăn Neptune 1L
+₫45.000 x 2
+..." 
+                            className="min-h-[300px]"
+                            value={shopeeText}
+                            onChange={(e) => setShopeeText(e.target.value)}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="ghost" onClick={() => setIsImportDialogOpen(false)}>Hủy</Button>
+                        <Button type="button" onClick={handleShopeeImport} disabled={!shopeeText.trim()} className="bg-orange-600 hover:bg-orange-700">Nhập dữ liệu</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+
         <Card>
             <CardHeader>
                 <CardTitle>Thông tin chung</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
-                control={form.control}
+                control={control}
                 name="category"
                 render={({ field }) => (
                     <FormItem>
@@ -214,7 +287,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                 )}
                 />
                  <FormField
-                control={form.control}
+                control={control}
                 name="buyer"
                 render={({ field }) => (
                     <FormItem>
@@ -235,7 +308,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                 )}
                 />
                 <FormField
-                control={form.control}
+                control={control}
                 name="date"
                 render={({ field }) => (
                     <FormItem className="flex flex-col">
@@ -266,11 +339,10 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                     <FormLabel className="col-span-2">Đơn giá</FormLabel>
                     <FormLabel className="col-span-2">Tổng</FormLabel>
                 </div>
-                 {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start pt-4 sm:pt-2 border-t sm:border-t-0 sm:border-b pb-4 sm:pb-2">
-                        {/* On mobile, use labels for each row */}
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-3 items-start p-4 sm:p-0 border rounded-2xl sm:border-0 sm:border-b sm:rounded-none bg-slate-50/30 sm:bg-transparent">
                         <div className="col-span-12 sm:col-span-4">
-                            <FormLabel className="sm:hidden text-xs font-medium">Sản phẩm</FormLabel>
+                            <FormLabel className="sm:hidden text-xs font-bold text-slate-500 mb-1 block">Sản phẩm #{index + 1}</FormLabel>
                             <FormField
                                 control={control}
                                 name={`items.${index}.productName`}
@@ -288,16 +360,16 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                             />
                         </div>
 
-                         <div className="col-span-6 sm:col-span-2">
-                            <FormLabel className="sm:hidden text-xs font-medium">Nơi nhận</FormLabel>
+                         <div className="col-span-12 sm:col-span-2">
+                            <FormLabel className="sm:hidden text-xs font-bold text-slate-500 mb-1 block">Nơi nhận</FormLabel>
                             <FormField
-                              control={form.control}
+                              control={control}
                               name={`items.${index}.receivingPlace`}
                               render={({ field }) => (
                                   <FormItem>
                                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                       <FormControl>
-                                      <SelectTrigger>
+                                      <SelectTrigger className="h-11 sm:h-10">
                                           <SelectValue placeholder="Chọn nơi nhận" />
                                       </SelectTrigger>
                                       </FormControl>
@@ -312,45 +384,45 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                           />
                         </div>
 
-                        <div className="col-span-6 sm:col-span-1">
-                             <FormLabel className="sm:hidden text-xs font-medium">Số lượng</FormLabel>
+                        <div className="col-span-4 sm:col-span-1">
+                             <FormLabel className="sm:hidden text-xs font-bold text-slate-500 mb-1 block">SL</FormLabel>
                              <FormField
                                 control={control}
                                 name={`items.${index}.quantity`}
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormControl>
-                                        <Input type="number" step="any" placeholder="SL" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'quantity')}} />
+                                        <Input type="number" step="any" className="h-11 sm:h-10" placeholder="SL" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'quantity')}} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                        <div className="col-span-6 sm:col-span-2">
-                            <FormLabel className="sm:hidden text-xs font-medium">Đơn giá</FormLabel>
+                        <div className="col-span-8 sm:col-span-2">
+                            <FormLabel className="sm:hidden text-xs font-bold text-slate-500 mb-1 block">Đơn giá</FormLabel>
                             <FormField
                                 control={control}
                                 name={`items.${index}.price`}
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormControl>
-                                        <Input type="number" placeholder="Đơn giá" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'price')}} />
+                                        <Input type="number" className="h-11 sm:h-10" placeholder="Đơn giá" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'price')}} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                         <div className="col-span-6 sm:col-span-2">
-                            <FormLabel className="sm:hidden text-xs font-medium">Tổng</FormLabel>
+                         <div className="col-span-10 sm:col-span-2">
+                            <FormLabel className="sm:hidden text-xs font-bold text-slate-500 mb-1 block">Tổng tiền</FormLabel>
                             <FormField
                                 control={control}
                                 name={`items.${index}.total`}
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormControl>
-                                        <Input type="number" placeholder="Tổng" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'total')}} />
+                                        <Input type="number" className="h-11 sm:h-10 font-bold text-primary" placeholder="Tổng" {...field} onChange={(e) => {field.onChange(e); updateItemFields(index, 'total')}} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
@@ -358,17 +430,17 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                             />
                         </div>
 
-                        <div className="col-span-12 flex justify-end">
+                        <div className="col-span-2 sm:col-span-1 flex items-end justify-end h-full sm:pb-2">
                              <Button
                                 type="button"
                                 variant="destructive"
                                 size="icon"
                                 onClick={() => remove(index)}
                                 disabled={fields.length <= 1}
-                                className="w-8 h-8"
+                                className="w-10 h-10 sm:w-8 sm:h-8"
                             >
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Xóa sản phẩm</span>
+                                <Trash2 className="h-5 w-5 sm:h-4 sm:w-4" />
+                                <span className="sr-only">Xóa</span>
                             </Button>
                         </div>
                     </div>
@@ -378,6 +450,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
                     variant="outline"
                     onClick={() => append({ productName: '', quantity: 1, price: 0, total: 0, receivingPlace: 'NĐ' })}
                 >
+                    <PlusCircle className="mr-2 h-4 w-4" />
                     Thêm sản phẩm
                 </Button>
                 {form.formState.errors.items && <FormMessage>{form.formState.errors.items.message}</FormMessage>}
@@ -386,7 +459,7 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
 
         <div className="flex justify-between items-center bg-secondary p-4 rounded-lg">
             <span className="text-lg font-bold">TỔNG CỘNG</span>
-            <span className="text-lg font-bold">
+            <span className="text-lg font-bold text-primary">
                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(watch('grandTotal') || 0)}
             </span>
         </div>
@@ -401,4 +474,3 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
     </Form>
   );
 }
-    

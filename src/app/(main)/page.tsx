@@ -104,7 +104,7 @@ export default function DashboardPage() {
         <StatsCards totalSpend={stats.totalSpend} totalItems={stats.totalItems} />
       </section>
 
-      <section className="flex flex-col gap-2 md:hidden">
+      <section className="flex flex-col gap-4 md:hidden">
         <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
             <Input 
@@ -115,9 +115,9 @@ export default function DashboardPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
         </div>
-        <div className="flex gap-2">
-            <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" className="[&_input]:rounded-xl [&_input]:ring-1 [&_input]:ring-border [&_input]:shadow-sm [&_input]:border-none"/>
-            <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" className="[&_input]:rounded-xl [&_input]:ring-1 [&_input]:ring-border [&_input]:shadow-sm [&_input]:border-none"/>
+        <div className="flex gap-3">
+            <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" className="flex-1 [&_input]:rounded-xl [&_input]:ring-1 [&_input]:ring-border [&_input]:shadow-sm [&_input]:border-none"/>
+            <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" className="flex-1 [&_input]:rounded-xl [&_input]:ring-1 [&_input]:ring-border [&_input]:shadow-sm [&_input]:border-none"/>
         </div>
       </section>
 

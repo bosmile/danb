@@ -1,108 +1,90 @@
 'use server';
 
-import {
-  Timestamp,
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where,
-  orderBy,
-  getDoc,
-} from 'firebase/firestore';
-import type { Invoice, InvoiceSerializable, InvoiceItem } from '@/types';
 import { revalidatePath } from 'next/cache';
-import { getUnauthenticatedFirestore } from '@/firebase/config';
+import type { InvoiceSerializable } from '@/types';
+import * as db from '@/lib/db';
+import { saveImage, deleteImage } from '@/lib/storage';
 
-async function getDb() {
-  const db = getUnauthenticatedFirestore();
-  return db;
-}
-
-function serializeInvoice(invoice: Invoice): InvoiceSerializable {
-    return {
-        ...invoice,
-        date: invoice.date.toDate().toISOString(),
-        createdAt: invoice.createdAt.toDate().toISOString(),
-    };
-}
+const COLLECTION = 'invoices';
 
 export async function getInvoices(startDate?: Date, endDate?: Date): Promise<InvoiceSerializable[]> {
-  const db = await getDb();
-  const invoicesCol = collection(db, 'invoices');
-  
-  const queries = [orderBy('date', 'desc')];
-  if (startDate) {
-    queries.push(where('date', '>=', Timestamp.fromDate(startDate)));
-  }
-  if (endDate) {
-    queries.push(where('date', '<=', Timestamp.fromDate(endDate)));
-  }
+  try {
+    const items = await db.readCollection<InvoiceSerializable>(COLLECTION);
+    
+    let filtered = [...items];
+    
+    if (startDate) {
+      filtered = filtered.filter(item => new Date(item.date) >= startDate);
+    }
+    if (endDate) {
+      filtered = filtered.filter(item => new Date(item.date) <= endDate);
+    }
 
-  const q = query(invoicesCol, ...queries);
-  const invoiceSnapshot = await getDocs(q);
-  const invoiceList = invoiceSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Invoice));
-  
-  return invoiceList.map(serializeInvoice);
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } catch (err) {
+    console.error("Error in getInvoices action:", err);
+    throw err;
+  }
 }
 
 export async function getInvoiceById(id: string): Promise<InvoiceSerializable | null> {
-    const db = await getDb();
-    const invoiceRef = doc(db, 'invoices', id);
-    const docSnap = await getDoc(invoiceRef);
-
-    if (docSnap.exists()) {
-        return serializeInvoice({ id: docSnap.id, ...docSnap.data() } as Invoice);
-    } else {
-        return null;
-    }
+    return await db.getItemById<InvoiceSerializable>(COLLECTION, id);
 }
 
-export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'imageUrl'>): Promise<{success: boolean, error?: string}> {
+export async function addInvoice(invoiceData: any): Promise<{success: boolean, id?: string, error?: string}> {
   try {
-    const db = await getDb();
-
-    const grandTotal = invoiceData.items.reduce((sum, item) => sum + (item.total || 0), 0);
+    const id = crypto.randomUUID();
+    const grandTotal = invoiceData.items.reduce((sum: number, item: any) => sum + (item.total || 0), 0);
     
-    const newInvoice = {
+    let imageUrl = 'https://picsum.photos/seed/placeholder/400/600';
+    if (invoiceData.image) {
+        imageUrl = await saveImage(invoiceData.image);
+    }
+
+    const newInvoice: InvoiceSerializable = {
       ...invoiceData,
-      date: Timestamp.fromDate(invoiceData.date as any),
-      grandTotal: grandTotal,
-      createdAt: Timestamp.now(),
-      imageUrl: 'https://picsum.photos/seed/placeholder/400/600',
+      id,
+      grandTotal,
+      imageUrl,
+      date: new Date(invoiceData.date).toISOString(),
+      createdAt: new Date().toISOString(),
     };
 
-    await addDoc(collection(db, 'invoices'), newInvoice);
+    await db.addItem(COLLECTION, newInvoice);
     
     revalidatePath('/');
     revalidatePath('/reports');
-    return { success: true };
+    return { success: true, id };
   } catch (error) {
     console.error("Error adding invoice: ", error);
-    return { success: false, error: "Không thể thêm hóa đơn. Vui lòng thử lại." };
+    return { success: false, error: "Không thể thêm hóa đơn local. Vui lòng thử lại." };
   }
 }
 
-export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoice, 'id' | 'createdAt'>>): Promise<{success: boolean, error?: string}> {
+export async function updateInvoice(id: string, invoiceData: any): Promise<{success: boolean, error?: string}> {
   try {
-    const db = await getDb();
-    const invoiceRef = doc(db, 'invoices', id);
+    const existing = await db.getItemById<InvoiceSerializable>(COLLECTION, id);
+    if (!existing) throw new Error("Invoice not found");
 
-    const grandTotal = invoiceData.items?.reduce((sum, item) => sum + (item.total || 0), 0);
-
-    const updateData: any = {
-        ...invoiceData,
-        date: Timestamp.fromDate(invoiceData.date as any),
-    };
-
-    if (grandTotal !== undefined) {
-        updateData.grandTotal = grandTotal;
+    const updateData: any = { ...invoiceData };
+    
+    if (invoiceData.items) {
+        updateData.grandTotal = invoiceData.items.reduce((sum: number, item: any) => sum + (item.total || 0), 0);
     }
 
-    await updateDoc(invoiceRef, updateData);
+    if (invoiceData.date) {
+        updateData.date = new Date(invoiceData.date).toISOString();
+    }
+
+    if (invoiceData.image) {
+        if (existing.imageUrl && existing.imageUrl.startsWith('/data/images/')) {
+            await deleteImage(existing.imageUrl);
+        }
+        updateData.imageUrl = await saveImage(invoiceData.image);
+        delete updateData.image;
+    }
+
+    await db.updateItem(COLLECTION, id, updateData);
 
     revalidatePath('/');
     revalidatePath('/reports');
@@ -110,21 +92,24 @@ export async function updateInvoice(id: string, invoiceData: Partial<Omit<Invoic
     return { success: true };
   } catch (error) {
     console.error("Error updating invoice: ", error);
-    return { success: false, error: "Không thể cập nhật hóa đơn. Vui lòng thử lại." };
+    return { success: false, error: "Không thể cập nhật hóa đơn local. Vui lòng thử lại." };
   }
 }
 
 export async function deleteInvoice(id: string): Promise<{success: boolean, error?: string}> {
   try {
-    const db = await getDb();
-    const invoiceRef = doc(db, 'invoices', id);
-    await deleteDoc(invoiceRef);
+    const existing = await db.getItemById<InvoiceSerializable>(COLLECTION, id);
+    if (existing?.imageUrl && existing.imageUrl.startsWith('/data/images/')) {
+        await deleteImage(existing.imageUrl);
+    }
+    
+    await db.deleteItem(COLLECTION, id);
 
     revalidatePath('/');
     revalidatePath('/reports');
     return { success: true };
   } catch (error) {
     console.error("Error deleting invoice: ", error);
-    return { success: false, error: "Không thể xóa hóa đơn. Vui lòng thử lại." };
+    return { success: false, error: "Không thể xóa hóa đơn local. Vui lòng thử lại." };
   }
 }

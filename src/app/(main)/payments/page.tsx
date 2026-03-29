@@ -109,21 +109,21 @@ export default function PaymentsPage() {
 
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Tình hình công nợ</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible">
-            <div className="min-w-[160px] flex-shrink-0 space-y-1.5 rounded-2xl border bg-card p-4 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 overflow-visible">
+            <div className="space-y-1.5 rounded-2xl border bg-card p-4 shadow-sm">
                 <p className="text-xs text-muted-foreground">Tổng nợ</p>
                 <p className="text-lg font-bold">{currencyFormatter(summaryStats.totalDebt)}</p>
             </div>
-            <div className="min-w-[160px] flex-shrink-0 space-y-1.5 rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="space-y-1.5 rounded-2xl border bg-card p-4 shadow-sm">
                 <p className="text-xs text-muted-foreground">Đã thanh toán</p>
                 <p className="text-lg font-bold">{currencyFormatter(summaryStats.totalPaid)}</p>
-                {summaryStats.lastPaidDate && (
+                {summaryStats.lastPaidDate && !isNaN(summaryStats.lastPaidDate.getTime()) && (
                     <p className="text-[10px] text-muted-foreground pt-1">
                         Gần nhất: {format(summaryStats.lastPaidDate, 'dd/MM/yy')}
                     </p>
                 )}
             </div>
-            <div className="min-w-[160px] flex-shrink-0 space-y-1.5 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm">
+            <div className="space-y-1.5 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm sm:col-span-2 md:col-span-1">
                 <p className="text-xs text-muted-foreground">Còn lại</p>
                 <p className="text-lg font-bold text-primary">{currencyFormatter(summaryStats.remaining)}</p>
             </div>
@@ -137,7 +137,7 @@ export default function PaymentsPage() {
           <CardDescription>Chọn khoảng thời gian để tạo một kỳ thanh toán và lưu lại dữ liệu báo cáo tương ứng.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4 items-end">
-          <div className="grid grid-cols-2 gap-4 w-full sm:w-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full sm:w-auto">
              <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
              <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
           </div>

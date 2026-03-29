@@ -40,8 +40,8 @@ export function InvoiceCard({ invoice, onDelete }: { invoice: InvoiceSerializabl
             <div onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-6 w-6 p-0 text-slate-400">
-                            <MoreHorizontal className="h-5 w-5" />
+                        <Button variant="ghost" className="h-10 w-10 p-0 text-slate-400 hover:text-slate-600 active:bg-slate-100 rounded-full transition-all">
+                            <MoreHorizontal className="h-6 w-6" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

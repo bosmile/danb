@@ -1,25 +1,12 @@
 'use server';
 
-import {
-  Timestamp,
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  orderBy,
-  getDoc,
-  FieldValue,
-} from 'firebase/firestore';
-import { getUnauthenticatedFirestore } from '@/firebase/config';
 import { revalidatePath } from 'next/cache';
-import type { Payment, PaymentSerializable, Invoice, PaymentTransaction, PaymentTransactionSerializable } from '@/types';
+import type { PaymentSerializable, InvoiceSerializable, PaymentTransactionSerializable } from '@/types';
 import { getInvoices } from './invoices';
-import { randomUUID } from 'crypto';
+import * as db from '@/lib/db';
 
-// This function is similar to the logic in ReportsView
+const COLLECTION = 'payments';
+
 const generateReportSnapshot = async (startDate: Date, endDate: Date) => {
     const allInvoicesData = await getInvoices(startDate, endDate);
     const groups: { 
@@ -81,7 +68,7 @@ const generateReportSnapshot = async (startDate: Date, endDate: Date) => {
     const reportData = Object.values(groups).sort((a, b) => {
         if (a.category < b.category) return -1;
         if (a.category > b.category) return 1;
-        if (a.productName < a.productName) return -1;
+        if (a.productName < b.productName) return -1;
         if (a.productName > b.productName) return 1;
         return 0;
     });
@@ -89,60 +76,36 @@ const generateReportSnapshot = async (startDate: Date, endDate: Date) => {
     return { reportData, grandTotal };
 };
 
-function serializePayment(payment: Payment): PaymentSerializable {
-    return {
-        ...payment,
-        startDate: payment.startDate.toDate().toISOString(),
-        endDate: payment.endDate.toDate().toISOString(),
-        createdAt: payment.createdAt.toDate().toISOString(),
-        transactions: (payment.transactions || []).map(t => ({
-            ...t,
-            date: t.date.toDate().toISOString(),
-        })),
-    };
-}
-
-
 export async function getPayments(): Promise<PaymentSerializable[]> {
-    const db = await getUnauthenticatedFirestore();
-    const paymentsCol = collection(db, 'payments');
-    const q = query(paymentsCol, orderBy('endDate', 'desc'));
-    const snapshot = await getDocs(q);
-    const paymentsList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Payment));
-
-    return paymentsList.map(serializePayment);
+    const items = await db.readCollection<PaymentSerializable>(COLLECTION);
+    return items.sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
 }
 
 export async function createPaymentForPeriod(startDate: Date, endDate: Date): Promise<{ success: boolean; newPayment?: PaymentSerializable; error?: string }> {
     try {
-        const db = await getUnauthenticatedFirestore();
         const { reportData, grandTotal } = await generateReportSnapshot(startDate, endDate);
 
         if (reportData.length === 0) {
             return { success: false, error: 'Không có dữ liệu trong khoảng thời gian đã chọn để tạo kỳ thanh toán.' };
         }
 
-        const newPaymentData = {
-            startDate: Timestamp.fromDate(startDate),
-            endDate: Timestamp.fromDate(endDate),
+        const newPayment: PaymentSerializable = {
+            id: crypto.randomUUID(),
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
             totalAmount: grandTotal,
             reportSnapshot: JSON.stringify(reportData),
-            createdAt: Timestamp.now(),
-            transactions: [], // Initialize with empty transactions
+            createdAt: new Date().toISOString(),
+            transactions: [],
         };
 
-        const docRef = await addDoc(collection(db, 'payments'), newPaymentData);
-
-        const newPayment: Payment = {
-            id: docRef.id,
-            ...newPaymentData
-        };
+        await db.addItem(COLLECTION, newPayment);
 
         revalidatePath('/payments');
-        return { success: true, newPayment: serializePayment(newPayment) };
+        return { success: true, newPayment };
     } catch (e: any) {
         console.error("Error creating payment period: ", e);
-        return { success: false, error: e.message || "Không thể tạo kỳ thanh toán." };
+        return { success: false, error: e.message || "Không thể tạo kỳ thanh toán local." };
     }
 }
 
@@ -151,24 +114,20 @@ export async function addTransactionToPayment(
     transactionData: { amount: number; date: Date; }
 ): Promise<{ success: boolean; error?: string; newRemainingAmount?: number }> {
     try {
-        const db = await getUnauthenticatedFirestore();
-        const paymentRef = doc(db, 'payments', paymentId);
-        const paymentSnap = await getDoc(paymentRef);
+        const payment = await db.getItemById<PaymentSerializable>(COLLECTION, paymentId);
 
-        if (!paymentSnap.exists()) {
+        if (!payment) {
             throw new Error('Không tìm thấy kỳ thanh toán.');
         }
 
-        const payment = paymentSnap.data() as Payment;
-        
-        const newTransaction: PaymentTransaction = {
-            id: randomUUID(),
-            date: Timestamp.fromDate(transactionData.date),
+        const newTransaction: PaymentTransactionSerializable = {
+            id: crypto.randomUUID(),
+            date: transactionData.date.toISOString(),
             amount: transactionData.amount,
         };
 
         const updatedTransactions = [...(payment.transactions || []), newTransaction];
-        await updateDoc(paymentRef, { transactions: updatedTransactions });
+        await db.updateItem<PaymentSerializable>(COLLECTION, paymentId, { transactions: updatedTransactions });
 
         const paidAmount = updatedTransactions.reduce((acc, t) => acc + t.amount, 0);
         const newRemainingAmount = payment.totalAmount - paidAmount;
@@ -177,43 +136,36 @@ export async function addTransactionToPayment(
         return { success: true, newRemainingAmount };
 
     } catch(e: any) {
-        return { success: false, error: e.message || 'Không thể thêm thanh toán.' };
+        return { success: false, error: e.message || 'Không thể thêm thanh toán local.' };
     }
 }
 
 export async function deleteTransaction(paymentId: string, transactionId: string): Promise<{ success: boolean; error?: string }> {
     try {
-        const db = await getUnauthenticatedFirestore();
-        const paymentRef = doc(db, 'payments', paymentId);
-        const paymentSnap = await getDoc(paymentRef);
-
-        if (!paymentSnap.exists()) {
+        const payment = await db.getItemById<PaymentSerializable>(COLLECTION, paymentId);
+        if (!payment) {
             throw new Error('Không tìm thấy kỳ thanh toán.');
         }
         
-        const payment = paymentSnap.data() as Payment;
         const updatedTransactions = (payment.transactions || []).filter(t => t.id !== transactionId);
 
-        await updateDoc(paymentRef, { transactions: updatedTransactions });
+        await db.updateItem<PaymentSerializable>(COLLECTION, paymentId, { transactions: updatedTransactions });
         
         revalidatePath('/payments');
         return { success: true };
 
     } catch (e: any) {
-        return { success: false, error: e.message || 'Không thể xóa thanh toán.' };
+        return { success: false, error: e.message || 'Không thể xóa thanh toán local.' };
     }
 }
 
 export async function deletePayment(id: string): Promise<{ success: boolean, error?: string }> {
      try {
-        const db = await getUnauthenticatedFirestore();
-        const paymentRef = doc(db, 'payments', id);
-        await deleteDoc(paymentRef);
-
+        await db.deleteItem(COLLECTION, id);
         revalidatePath('/payments');
         return { success: true };
     } catch (e: any) {
         console.error("Error deleting payment: ", e);
-        return { success: false, error: "Không thể xóa kỳ thanh toán." };
+        return { success: false, error: "Không thể xóa kỳ thanh toán local." };
     }
 }
