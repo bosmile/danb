@@ -153,7 +153,7 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
       return (
         <AlertDialog>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" className="h-8 w-8 p-0">
                 <span className="sr-only">Mở menu</span>
                 <MoreHorizontal className="h-4 w-4" />

@@ -35,12 +35,21 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+import { format } from 'date-fns';
+import { Badge } from '../ui/badge';
+import { Separator } from '../ui/separator';
+
+const currencyFormatter = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+}
+
 interface InvoiceTableProps {
   data: InvoiceSerializable[];
   onDataChanged: () => void;
 }
 
 export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
+  const [expandedRowId, setExpandedRowId] = React.useState<string | null>(null);
   const isMobile = useIsMobile();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -146,13 +155,94 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <React.Fragment key={row.id}>
+                    <TableRow 
+                        key={row.id} 
+                        data-state={row.getIsSelected() && 'selected'}
+                        className="cursor-pointer transition-colors"
+                        onClick={() => setExpandedRowId(expandedRowId === row.id ? null : row.id)}
+                    >
+                    {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                    ))}
+                    </TableRow>
+                    {expandedRowId === row.id && (
+                        <TableRow className="bg-muted/10 hover:bg-muted/10 border-b-2 border-primary/10">
+                            <TableCell colSpan={columns.length} className="p-0">
+                                <div className="p-6 bg-card/50">
+                                    <div className="flex flex-col md:flex-row gap-8">
+                                        {row.original.imageUrl && (
+                                            <div className="shrink-0">
+                                                <div className="relative group cursor-zoom-in">
+                                                    <img 
+                                                        src={row.original.imageUrl} 
+                                                        alt="Receipt" 
+                                                        className="w-32 h-44 object-cover rounded-xl shadow-lg border-2 border-border transition-transform group-hover:scale-105"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-xl" />
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="flex-1 flex flex-col gap-6">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm px-4">
+                                                <div>
+                                                    <p className="text-muted-foreground mb-1">Ngày mua</p>
+                                                    <p className="font-semibold">{format(new Date(row.original.date), 'dd/MM/yyyy')}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground mb-1">Người mua - Nơi nhận</p>
+                                                    <p className="font-semibold">
+                                                        {row.original.buyer} - {[...new Set(row.original.items.map(it => it.receivingPlace))].join(', ')}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground mb-1">Loại</p>
+                                                    <Badge variant="outline" className="font-bold">{row.original.category}</Badge>
+                                                </div>
+                                                <div>
+                                                    <p className="text-muted-foreground mb-1">Tổng cộng</p>
+                                                    <p className="font-bold text-lg text-primary">{currencyFormatter(row.original.grandTotal)}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <Separator className="bg-border/40" />
+                                            
+                                            <div className="px-4">
+                                                <h4 className="text-sm font-bold mb-3 uppercase tracking-wider text-muted-foreground">Chi tiết sản phẩm</h4>
+                                                <div className="rounded-xl border border-border shadow-sm overflow-hidden bg-background">
+                                                    <Table>
+                                                        <TableHeader className="bg-muted/30">
+                                                            <TableRow className="hover:bg-transparent border-none">
+                                                                <TableHead className="h-9 text-xs">Sản phẩm</TableHead>
+                                                                <TableHead className="h-9 text-xs">Nơi nhận</TableHead>
+                                                                <TableHead className="h-9 text-xs text-right">SL</TableHead>
+                                                                <TableHead className="h-9 text-xs text-right">Đơn giá</TableHead>
+                                                                <TableHead className="h-9 text-xs text-right">Tổng</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {row.original.items.map((item, idx) => (
+                                                                <TableRow key={idx} className="border-border/30 last:border-0 hover:bg-muted/20">
+                                                                    <TableCell className="py-2.5 text-sm font-medium">{item.productName}</TableCell>
+                                                                    <TableCell className="py-2.5 text-sm text-muted-foreground">{item.receivingPlace}</TableCell>
+                                                                    <TableCell className="py-2.5 text-sm text-right font-semibold">{item.quantity}</TableCell>
+                                                                    <TableCell className="py-2.5 text-sm text-right text-muted-foreground">{currencyFormatter(item.price)}</TableCell>
+                                                                    <TableCell className="py-2.5 text-sm text-right font-bold text-primary">{currencyFormatter(item.total)}</TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </React.Fragment>
               ))
             ) : (
               <TableRow>
