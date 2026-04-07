@@ -79,7 +79,8 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
                       </TableCell>
                     ))}
                   </TableRow>
-                  <TableRow className="bg-muted/30 hover:bg-muted/30">
+                  {!row.original.isCompleted && (
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
                       <TableCell colSpan={columns.length}>
                         <PaymentTransactionForm
                           payment={row.original}
@@ -87,6 +88,7 @@ export function PaymentsTable({ data, onDataChanged }: PaymentsTableProps) {
                         />
                       </TableCell>
                     </TableRow>
+                  )}
                 </React.Fragment>
               ))
             ) : (

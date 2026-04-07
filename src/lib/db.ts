@@ -26,6 +26,7 @@ export function fromDB(item: any) {
   if ('end_date' in newItem) { newItem.endDate = newItem.end_date; delete newItem.end_date; }
   if ('total_amount' in newItem) { newItem.totalAmount = newItem.total_amount; delete newItem.total_amount; }
   if ('report_snapshot' in newItem) { newItem.reportSnapshot = newItem.report_snapshot; delete newItem.report_snapshot; }
+  if ('is_completed' in newItem) { newItem.isCompleted = newItem.is_completed; delete newItem.is_completed; }
   return newItem;
 }
 
@@ -40,6 +41,7 @@ export function toDB(item: any) {
   if ('endDate' in newItem) { newItem.end_date = newItem.endDate; delete newItem.endDate; }
   if ('totalAmount' in newItem) { newItem.total_amount = newItem.totalAmount; delete newItem.totalAmount; }
   if ('reportSnapshot' in newItem) { newItem.report_snapshot = newItem.reportSnapshot; delete newItem.reportSnapshot; }
+  if ('isCompleted' in newItem) { newItem.is_completed = newItem.isCompleted; delete newItem.isCompleted; }
   return newItem;
 }
 

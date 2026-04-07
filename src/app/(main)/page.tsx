@@ -16,6 +16,11 @@ import { ManualDateInput } from '@/components/shared/manual-date-input';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { InvoiceList } from '@/components/invoices/invoice-list';
 import { Input } from '@/components/ui/input';
+import { getPayments } from '@/lib/actions/payments';
+import type { PaymentSerializable } from '@/types';
+import { isWithinInterval, parseISO, addDays } from 'date-fns';
+import { History } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 
 export default function DashboardPage() {
@@ -25,6 +30,8 @@ export default function DashboardPage() {
   const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showUnpaidOnly, setShowUnpaidOnly] = useState(false);
+  const [allPayments, setAllPayments] = useState<PaymentSerializable[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -54,14 +61,49 @@ export default function DashboardPage() {
   }, [startDate, endDate]);
 
   useEffect(() => {
+    getPayments().then(data => setAllPayments(data)).catch(() => {});
+  }, []);
+
+  const isUnassigned = (invoiceDate: string) => {
+    if (!allPayments.length) return true;
+    const date = new Date(invoiceDate);
+    date.setHours(0,0,0,0);
+    return !allPayments.some(p => {
+        const s = new Date(p.startDate);
+        const e = new Date(p.endDate);
+        s.setHours(0,0,0,0);
+        e.setHours(23,59,59,999);
+        return date >= s && date <= e;
+    });
+  }
+
+  const handleToggleUnassigned = () => {
+    const nextValue = !showUnpaidOnly;
+    setShowUnpaidOnly(nextValue);
+    
+    if (nextValue) {
+        // When turning on, suggest dates
+        if (allPayments.length === 0) {
+            setStartDate(new Date(2025, 0, 1));
+            setEndDate(new Date());
+        } else {
+            // allPayments is already sorted by endDate desc from the action
+            const latest = new Date(allPayments[0].endDate);
+            setStartDate(addDays(latest, 1));
+            setEndDate(new Date());
+        }
+    }
+  }
+
+  useEffect(() => {
     const lowercasedFilter = searchTerm.toLowerCase();
     const filteredData = invoices.filter(invoice => 
       invoice.items.some(item => 
         item.productName.toLowerCase().includes(lowercasedFilter)
-      )
+      ) && (!showUnpaidOnly || isUnassigned(invoice.date))
     );
     setFilteredInvoices(filteredData);
-  }, [searchTerm, invoices]);
+  }, [searchTerm, invoices, showUnpaidOnly, allPayments]);
 
 
   const handleInvoiceUpdate = () => {
@@ -84,6 +126,15 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
               <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+              <Button 
+                variant={showUnpaidOnly ? "default" : "outline"}
+                size="icon"
+                onClick={handleToggleUnassigned}
+                title="Chưa nằm trong kỳ thanh toán"
+                className={showUnpaidOnly ? "bg-orange-500 hover:bg-orange-600" : ""}
+              >
+                <History className="h-4 w-4" />
+              </Button>
             </div>
             <Button asChild>
                 <Link href="/invoices/add">
@@ -115,9 +166,19 @@ export default function DashboardPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
             <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" className="flex-1 [&_input]:rounded-xl [&_input]:ring-1 [&_input]:ring-border [&_input]:shadow-sm [&_input]:border-none"/>
             <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" className="flex-1 [&_input]:rounded-xl [&_input]:ring-1 [&_input]:ring-border [&_input]:shadow-sm [&_input]:border-none"/>
+            <Button 
+                variant={showUnpaidOnly ? "default" : "outline"}
+                onClick={handleToggleUnassigned}
+                className={cn(
+                    "rounded-xl shadow-sm border-none ring-1 ring-border min-w-[3rem]",
+                    showUnpaidOnly ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-card"
+                )}
+            >
+                <History className="h-5 w-5" />
+            </Button>
         </div>
       </section>
 

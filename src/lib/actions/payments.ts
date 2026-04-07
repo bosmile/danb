@@ -169,3 +169,14 @@ export async function deletePayment(id: string): Promise<{ success: boolean, err
         return { success: false, error: "Không thể xóa kỳ thanh toán local." };
     }
 }
+
+export async function updatePayment(id: string, data: Partial<PaymentSerializable>): Promise<{ success: boolean, error?: string }> {
+    try {
+        await db.updateItem<PaymentSerializable>(COLLECTION, id, data);
+        revalidatePath('/payments');
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error updating payment: ", e);
+        return { success: false, error: "Không thể cập nhật kỳ thanh toán local." };
+    }
+}

@@ -7,14 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ManualDateInput } from '@/components/shared/manual-date-input';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, History } from 'lucide-react';
 import { getPayments, createPaymentForPeriod } from '@/lib/actions/payments';
 import type { PaymentSerializable } from '@/types';
+import { addDays } from 'date-fns';
 import { PaymentsTable } from '@/components/payments/payments-table';
 import { PaymentReportModal } from '@/components/payments/payment-report-modal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaymentsList } from '@/components/payments/payments-list';
+import { cn } from '@/lib/utils';
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -89,6 +91,17 @@ export default function PaymentsPage() {
     }
   };
 
+  const suggestMissingRange = () => {
+    if (payments.length === 0) {
+        setStartDate(new Date(2025, 0, 1));
+        setEndDate(new Date());
+    } else {
+        const latest = new Date(payments[0].endDate);
+        setStartDate(addDays(latest, 1));
+        setEndDate(new Date());
+    }
+  };
+
   if (isMobile === undefined) {
     return (
         <div className="space-y-6">
@@ -123,9 +136,17 @@ export default function PaymentsPage() {
                     </p>
                 )}
             </div>
-            <div className="space-y-1.5 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm sm:col-span-2 md:col-span-1">
-                <p className="text-xs text-muted-foreground">Còn lại</p>
-                <p className="text-lg font-bold text-primary">{currencyFormatter(summaryStats.remaining)}</p>
+            <div className={cn(
+                "space-y-1.5 rounded-2xl border bg-card p-4 shadow-sm sm:col-span-2 md:col-span-1",
+                summaryStats.remaining < 0 ? "border-green-500/40" : "border-primary/40"
+            )}>
+                <p className="text-xs text-muted-foreground">{summaryStats.remaining < 0 ? 'Lợi nhuận' : 'Còn lại'}</p>
+                <p className={cn(
+                    "text-lg font-bold",
+                    summaryStats.remaining < 0 ? "text-green-600" : "text-primary"
+                )}>
+                    {currencyFormatter(Math.abs(summaryStats.remaining))}
+                </p>
             </div>
         </div>
       </div>
@@ -137,9 +158,21 @@ export default function PaymentsPage() {
           <CardDescription>Chọn khoảng thời gian để tạo một kỳ thanh toán và lưu lại dữ liệu báo cáo tương ứng.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4 items-end">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full sm:w-auto">
-             <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
-             <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full sm:w-auto items-end">
+             <div className="space-y-1.5 flex-1">
+                <ManualDateInput date={startDate} setDate={setStartDate} placeholder="Từ ngày" />
+             </div>
+             <div className="flex items-center gap-2">
+                <ManualDateInput date={endDate} setDate={setEndDate} placeholder="Đến ngày" />
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={suggestMissingRange}
+                    title="Chọn ngày chưa thanh toán"
+                >
+                    <History className="h-4 w-4" />
+                </Button>
+             </div>
           </div>
           <Button onClick={handleCreatePayment} disabled={isCreating || !startDate || !endDate} className="w-full sm:w-auto">
             {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

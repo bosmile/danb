@@ -58,6 +58,7 @@ export interface Payment {
   totalAmount: number;
   transactions: PaymentTransaction[];
   reportSnapshot: string; // JSON string of the report data
+  isCompleted?: boolean;
   createdAt: Timestamp;
 }
 
@@ -66,4 +67,5 @@ export type PaymentSerializable = Omit<Payment, 'startDate' | 'endDate' | 'creat
   endDate: string;
   createdAt: string;
   transactions: PaymentTransactionSerializable[];
+  isCompleted?: boolean;
 };

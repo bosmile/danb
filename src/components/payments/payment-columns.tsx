@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import type { PaymentSerializable } from '@/types';
 import { format } from 'date-fns';
-import { ArrowUpDown, MoreHorizontal, Eye } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Eye, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { deletePayment } from '@/lib/actions/payments';
+import { deletePayment, updatePayment } from '@/lib/actions/payments';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { PaymentReportModal } from './payment-report-modal';
 import { Progress } from '../ui/progress';
@@ -23,7 +23,10 @@ const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 }
 
-const getPaymentStatus = (paidAmount: number, totalAmount: number): { text: string, color: string } => {
+const getPaymentStatus = (paidAmount: number, totalAmount: number, isCompleted?: boolean): { text: string, color: string } => {
+    if (isCompleted) {
+        return { text: 'Đã hoàn thành', color: 'text-green-600' };
+    }
     if (paidAmount <= 0) {
         return { text: 'Chưa thanh toán', color: 'text-destructive' };
     }
@@ -78,7 +81,7 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
         return (
             <div className="text-right">
                 <div>{currencyFormatter(paidAmount)}</div>
-                {transactions.length > 0 && (
+                {(!row.original.isCompleted && transactions.length > 0) && (
                     <div className="text-xs text-muted-foreground mt-1">
                         {transactions.map(t => (
                             <div key={t.id}>{format(new Date(t.date), 'dd/MM/yy')}</div>
@@ -92,12 +95,16 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
    {
     accessorKey: 'remainingAmount',
     header: ({ column }) => (
-        <Button variant="ghost" className="justify-end w-full">Còn lại</Button>
+        <Button variant="ghost" className="justify-end w-full">Lợi nhuận / Còn lại</Button>
     ),
     cell: ({ row }) => {
         const paidAmount = row.original.transactions.reduce((acc, t) => acc + t.amount, 0);
         const remainingAmount = row.original.totalAmount - paidAmount;
-        return <div className="text-right font-semibold text-primary">{currencyFormatter(remainingAmount)}</div>;
+        return (
+            <div className={`text-right font-semibold ${remainingAmount < 0 ? 'text-green-600' : 'text-primary'}`}>
+                {remainingAmount < 0 ? `+ ${currencyFormatter(Math.abs(remainingAmount))}` : currencyFormatter(remainingAmount)}
+            </div>
+        );
     }
   },
   {
@@ -107,7 +114,7 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
         const paidAmount = row.original.transactions.reduce((acc, t) => acc + t.amount, 0);
         const totalAmount = row.original.totalAmount;
         const progress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
-        const status = getPaymentStatus(paidAmount, totalAmount);
+        const status = getPaymentStatus(paidAmount, totalAmount, row.original.isCompleted);
         
         return (
             <div className="flex flex-col gap-2">
@@ -149,6 +156,18 @@ export const getPaymentColumns = (onDataChanged: () => void): ColumnDef<PaymentS
                     <Eye className="h-4 w-4"/> Xem báo cáo
                 </DropdownMenuItem>
               </PaymentReportModal>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={async () => {
+                  const result = await updatePayment(payment.id, { isCompleted: !payment.isCompleted });
+                  if (result.success) {
+                      toast({ title: "Thành công", description: payment.isCompleted ? "Đã mở lại kỳ thanh toán." : "Đã hoàn thành kỳ thanh toán." });
+                      onDataChanged();
+                  } else {
+                      toast({ variant: 'destructive', title: "Lỗi", description: result.error });
+                  }
+              }} className="flex items-center gap-2 cursor-pointer">
+                  <CheckCircle className="h-4 w-4" /> {payment.isCompleted ? 'Mở lại kỳ thanh toán' : 'Đánh dấu hoàn thành'}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">

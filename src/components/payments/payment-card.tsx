@@ -2,7 +2,7 @@
 
 import type { PaymentSerializable } from '@/types';
 import { format } from 'date-fns';
-import { MoreHorizontal, Eye, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2, CheckCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,14 +26,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { deletePayment } from '@/lib/actions/payments';
+import { deletePayment, updatePayment } from '@/lib/actions/payments';
 import { PaymentReportModal } from './payment-report-modal';
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 };
 
-const getPaymentStatus = (paidAmount: number, totalAmount: number): { text: string, color: string, progressColor: string } => {
+const getPaymentStatus = (paidAmount: number, totalAmount: number, isCompleted?: boolean): { text: string, color: string, progressColor: string } => {
+    if (isCompleted) {
+        return { text: 'Đã hoàn thành', color: 'text-green-600', progressColor: 'bg-green-500' };
+    }
     if (paidAmount <= 0) {
         return { text: 'Chưa thanh toán', color: 'text-destructive', progressColor: 'bg-destructive' };
     }
@@ -48,8 +51,18 @@ export function PaymentCard({ payment, onDataChanged }: { payment: PaymentSerial
     const paidAmount = payment.transactions.reduce((acc, t) => acc + t.amount, 0);
     const remainingAmount = payment.totalAmount - paidAmount;
     const progress = payment.totalAmount > 0 ? (paidAmount / payment.totalAmount) * 100 : 0;
-    const status = getPaymentStatus(paidAmount, payment.totalAmount);
+    const status = getPaymentStatus(paidAmount, payment.totalAmount, payment.isCompleted);
     
+    const handleToggleComplete = async () => {
+        const result = await updatePayment(payment.id, { isCompleted: !payment.isCompleted });
+        if (result.success) {
+            toast({ title: "Thành công", description: payment.isCompleted ? "Đã mở lại kỳ thanh toán." : "Đã hoàn thành kỳ thanh toán." });
+            onDataChanged();
+        } else {
+            toast({ variant: 'destructive', title: "Lỗi", description: result.error });
+        }
+    };
+
     const handleDelete = async () => {
         const result = await deletePayment(payment.id);
         if (result.success) {
@@ -84,6 +97,10 @@ export function PaymentCard({ payment, onDataChanged }: { payment: PaymentSerial
                                     </DropdownMenuItem>
                                 </PaymentReportModal>
                                 <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleToggleComplete} className="flex items-center gap-2 cursor-pointer">
+                                    <CheckCircle className="h-4 w-4" /> {payment.isCompleted ? 'Mở lại kỳ thanh toán' : 'Đánh dấu hoàn thành'}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <AlertDialogTrigger asChild>
                                     <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
                                         <Trash2 className="mr-2 h-4 w-4" />
@@ -100,8 +117,10 @@ export function PaymentCard({ payment, onDataChanged }: { payment: PaymentSerial
                             <p className="font-semibold text-sm">{currencyFormatter(payment.totalAmount)}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] text-muted-foreground">Còn lại</p>
-                            <p className={`font-semibold text-sm ${remainingAmount > 0 ? 'text-primary' : 'text-green-600'}`}>{currencyFormatter(remainingAmount)}</p>
+                            <p className="text-[10px] text-muted-foreground">{remainingAmount < 0 ? 'Lợi nhuận' : 'Còn lại'}</p>
+                            <p className={`font-semibold text-sm ${remainingAmount < 0 ? 'text-green-600' : (remainingAmount > 0 ? 'text-primary' : 'text-slate-600')}`}>
+                                {currencyFormatter(Math.abs(remainingAmount))}
+                            </p>
                         </div>
                     </div>
 
@@ -114,9 +133,11 @@ export function PaymentCard({ payment, onDataChanged }: { payment: PaymentSerial
                     </div>
                 </div>
 
-                <div className="bg-muted/30 p-4 border-t border-border">
-                    <PaymentTransactionForm payment={payment} onDataChanged={onDataChanged} />
-                </div>
+                {!payment.isCompleted && (
+                    <div className="bg-muted/30 p-4 border-t border-border">
+                        <PaymentTransactionForm payment={payment} onDataChanged={onDataChanged} />
+                    </div>
+                )}
             </div>
             
             <AlertDialogContent>
