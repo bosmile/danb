@@ -36,8 +36,15 @@ const currencyFormatter = (value: number) => {
 export function PaymentReportModal({ payment, children, open, onOpenChange }: PaymentReportModalProps) {
   const reportData = useMemo(() => {
     try {
-        const parsed = payment.reportSnapshot ? JSON.parse(payment.reportSnapshot) : [];
-        return Array.isArray(parsed) ? parsed : [];
+        if (!payment.reportSnapshot) return [];
+        // Handle case where it's already an array
+        if (Array.isArray(payment.reportSnapshot)) return payment.reportSnapshot;
+        // Handle case where it's a string
+        if (typeof payment.reportSnapshot === 'string') {
+            const parsed = JSON.parse(payment.reportSnapshot);
+            return Array.isArray(parsed) ? parsed : [];
+        }
+        return [];
     } catch (e) {
         console.error("Failed to parse report snapshot", e);
         return [];

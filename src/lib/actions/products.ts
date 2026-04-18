@@ -63,7 +63,7 @@ export async function addProduct(productData: { name: string }): Promise<{succes
         return { success: true, newProduct };
     } catch(error: any) {
         console.error("Error adding product:", error);
-        return { success: false, error: error.message || "Không thể thêm sản phẩm local." };
+        return { success: false, error: error.message || "Không thể thêm sản phẩm." };
     }
 }
 
@@ -80,7 +80,7 @@ export async function updateProduct(id: string, productData: { name: string }): 
         return { success: true };
     } catch(error: any) {
         console.error("Error updating product:", error);
-        return { success: false, error: error.message || "Không thể cập nhật sản phẩm local." };
+        return { success: false, error: error.message || "Không thể cập nhật sản phẩm." };
     }
 }
 
@@ -105,6 +105,6 @@ export async function deleteProduct(id: string): Promise<{success: boolean, erro
         return { success: true };
     } catch (error) {
         console.error("Error deleting product: ", error);
-        return { success: false, error: 'Không thể xóa sản phẩm local.' };
+        return { success: false, error: 'Không thể xóa sản phẩm.' };
     }
 }

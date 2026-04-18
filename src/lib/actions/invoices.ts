@@ -3,27 +3,24 @@
 import { revalidatePath } from 'next/cache';
 import type { InvoiceSerializable } from '@/types';
 import * as db from '@/lib/db';
-import { supabase } from '@/lib/db';
-import { saveImage, deleteImage } from '@/lib/storage';
+import { sql } from '@/lib/db';
 
 const COLLECTION = 'invoices';
 
 export async function getInvoices(startDate?: Date, endDate?: Date): Promise<InvoiceSerializable[]> {
   try {
-    let query = supabase.from(COLLECTION).select('*');
-    
-    if (startDate) {
-      query = query.gte('date', startDate.toISOString());
+    let result;
+    if (startDate && endDate) {
+      result = await sql.query(`SELECT * FROM ${COLLECTION} WHERE date >= $1 AND date <= $2 ORDER BY date DESC`, [startDate.toISOString(), endDate.toISOString()]);
+    } else if (startDate) {
+      result = await sql.query(`SELECT * FROM ${COLLECTION} WHERE date >= $1 ORDER BY date DESC`, [startDate.toISOString()]);
+    } else if (endDate) {
+      result = await sql.query(`SELECT * FROM ${COLLECTION} WHERE date <= $1 ORDER BY date DESC`, [endDate.toISOString()]);
+    } else {
+      result = await sql.query(`SELECT * FROM ${COLLECTION} ORDER BY date DESC`);
     }
-    if (endDate) {
-      query = query.lte('date', endDate.toISOString());
-    }
-
-    const { data, error } = await query.order('date', { ascending: false });
     
-    if (error) throw error;
-    
-    return (data || []).map(item => db.fromDB(item)) as InvoiceSerializable[];
+    return (result || []).map(item => db.fromDB(item)) as InvoiceSerializable[];
   } catch (err) {
     console.error("Error in getInvoices action:", err);
     throw err;
@@ -39,10 +36,8 @@ export async function addInvoice(invoiceData: any): Promise<{success: boolean, i
     const id = crypto.randomUUID();
     const grandTotal = invoiceData.items.reduce((sum: number, item: any) => sum + (item.total || 0), 0);
     
-    let imageUrl = 'https://picsum.photos/seed/placeholder/400/600';
-    if (invoiceData.image) {
-        imageUrl = await saveImage(invoiceData.image);
-    }
+    // Simplification: Images are no longer stored in cloud storage
+    const imageUrl = 'https://picsum.photos/seed/' + id + '/400/600';
 
     const newInvoice: InvoiceSerializable = {
       ...invoiceData,
@@ -60,7 +55,7 @@ export async function addInvoice(invoiceData: any): Promise<{success: boolean, i
     return { success: true, id };
   } catch (error) {
     console.error("Error adding invoice: ", error);
-    return { success: false, error: "Không thể thêm hóa đơn local. Vui lòng thử lại." };
+    return { success: false, error: "Không thể thêm hóa đơn. Vui lòng thử lại." };
   }
 }
 
@@ -79,12 +74,9 @@ export async function updateInvoice(id: string, invoiceData: any): Promise<{succ
         updateData.date = new Date(invoiceData.date).toISOString();
     }
 
+    // Simplified image handling
     if (invoiceData.image) {
-        if (existing.imageUrl && existing.imageUrl.includes('invoices')) {
-            await deleteImage(existing.imageUrl);
-        }
-        updateData.imageUrl = await saveImage(invoiceData.image);
-        delete updateData.image;
+        delete updateData.image; 
     }
 
     await db.updateItem(COLLECTION, id, updateData);
@@ -95,17 +87,12 @@ export async function updateInvoice(id: string, invoiceData: any): Promise<{succ
     return { success: true };
   } catch (error) {
     console.error("Error updating invoice: ", error);
-    return { success: false, error: "Không thể cập nhật hóa đơn local. Vui lòng thử lại." };
+    return { success: false, error: "Không thể cập nhật hóa đơn. Vui lòng thử lại." };
   }
 }
 
 export async function deleteInvoice(id: string): Promise<{success: boolean, error?: string}> {
   try {
-    const existing = await db.getItemById<InvoiceSerializable>(COLLECTION, id);
-    if (existing?.imageUrl && existing.imageUrl.includes('invoices')) {
-        await deleteImage(existing.imageUrl);
-    }
-    
     await db.deleteItem(COLLECTION, id);
 
     revalidatePath('/');
@@ -113,6 +100,7 @@ export async function deleteInvoice(id: string): Promise<{success: boolean, erro
     return { success: true };
   } catch (error) {
     console.error("Error deleting invoice: ", error);
-    return { success: false, error: "Không thể xóa hóa đơn local. Vui lòng thử lại." };
+    return { success: false, error: "Không thể xóa hóa đơn. Vui lòng thử lại." };
   }
 }
+

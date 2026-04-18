@@ -29,7 +29,7 @@ import {
 import { deleteInvoice } from '@/lib/actions/invoices';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { InvoiceDetailsModal } from './invoice-details-modal';
+import { Edit2, Trash2 } from 'lucide-react';
 
 const CategoryBadge = ({ category }: { category: InvoiceSerializable['category'] }) => {
     const variant: "default" | "secondary" | "destructive" =
@@ -63,7 +63,6 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
     header: 'Sản phẩm',
     cell: ({ row }) => {
         const items = row.original.items || [];
-        const invoice = row.original;
         if (items.length === 0) {
             return <span>-</span>;
         }
@@ -71,11 +70,9 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
             return <span>{items[0].productName}</span>;
         }
         return (
-            <InvoiceDetailsModal invoice={invoice}>
-              <button className="cursor-pointer underline decoration-dotted text-left">
-                  {items.length} sản phẩm
-              </button>
-            </InvoiceDetailsModal>
+            <span className="font-medium text-primary">
+                {items.length} sản phẩm
+            </span>
         )
     },
     filterFn: (row, columnId, filterValue) => {
@@ -140,7 +137,10 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
       const invoice = row.original;
       const { toast } = useToast();
 
-      const handleDelete = async () => {
+      const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!window.confirm('Bạn có chắc chắn muốn xóa hóa đơn này?')) return;
+        
         const result = await deleteInvoice(invoice.id);
         if (result.success) {
             toast({ title: "Thành công", description: "Đã xóa hóa đơn." });
@@ -151,41 +151,27 @@ export const getInvoiceColumns = (onDataChanged: () => void): ColumnDef<InvoiceS
       }
 
       return (
-        <AlertDialog>
-          <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Mở menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-              <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
-                <Link href={`/invoices/${invoice.id}/edit`}>Sửa</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                  Xóa
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <AlertDialogContent>
-              <AlertDialogHeader>
-                  <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                      Hành động này không thể hoàn tác. Hóa đơn sẽ bị xóa vĩnh viễn.
-                  </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                  <AlertDialogCancel>Hủy</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Xóa</AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <div className="flex items-center gap-1">
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-slate-500 hover:text-blue-600" 
+                asChild
+                onClick={(e) => e.stopPropagation()}
+            >
+                <Link href={`/invoices/${invoice.id}/edit`}>
+                    <Edit2 className="h-4 w-4" />
+                </Link>
+            </Button>
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-slate-500 hover:text-destructive" 
+                onClick={handleDelete}
+            >
+                <Trash2 className="h-4 w-4" />
+            </Button>
+        </div>
       );
     },
   },

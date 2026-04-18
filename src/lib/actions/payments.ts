@@ -105,7 +105,7 @@ export async function createPaymentForPeriod(startDate: Date, endDate: Date): Pr
         return { success: true, newPayment };
     } catch (e: any) {
         console.error("Error creating payment period: ", e);
-        return { success: false, error: e.message || "Không thể tạo kỳ thanh toán local." };
+        return { success: false, error: e.message || "Không thể tạo kỳ thanh toán." };
     }
 }
 
@@ -136,7 +136,7 @@ export async function addTransactionToPayment(
         return { success: true, newRemainingAmount };
 
     } catch(e: any) {
-        return { success: false, error: e.message || 'Không thể thêm thanh toán local.' };
+        return { success: false, error: e.message || 'Không thể thêm thanh toán.' };
     }
 }
 
@@ -155,7 +155,7 @@ export async function deleteTransaction(paymentId: string, transactionId: string
         return { success: true };
 
     } catch (e: any) {
-        return { success: false, error: e.message || 'Không thể xóa thanh toán local.' };
+        return { success: false, error: e.message || 'Không thể xóa thanh toán.' };
     }
 }
 
@@ -166,7 +166,7 @@ export async function deletePayment(id: string): Promise<{ success: boolean, err
         return { success: true };
     } catch (e: any) {
         console.error("Error deleting payment: ", e);
-        return { success: false, error: "Không thể xóa kỳ thanh toán local." };
+        return { success: false, error: "Không thể xóa kỳ thanh toán." };
     }
 }
 
@@ -177,6 +177,6 @@ export async function updatePayment(id: string, data: Partial<PaymentSerializabl
         return { success: true };
     } catch (e: any) {
         console.error("Error updating payment: ", e);
-        return { success: false, error: "Không thể cập nhật kỳ thanh toán local." };
+        return { success: false, error: "Không thể cập nhật kỳ thanh toán." };
     }
 }

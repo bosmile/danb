@@ -38,6 +38,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
+import { cn } from '@/lib/utils';
 
 const currencyFormatter = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -155,23 +156,41 @@ export function InvoiceTable({ data, onDataChanged }: InvoiceTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <React.Fragment key={row.id}>
+                <React.Fragment key={row.original.id}>
                     <TableRow 
-                        key={row.id} 
                         data-state={row.getIsSelected() && 'selected'}
-                        className="cursor-pointer transition-colors"
-                        onClick={() => setExpandedRowId(expandedRowId === row.id ? null : row.id)}
+                        className={cn(
+                            "transition-all duration-200 cursor-pointer select-none",
+                            expandedRowId === row.original.id ? "bg-primary/5 hover:bg-primary/5" : "hover:bg-muted/50"
+                        )}
+                        onClick={(e) => {
+                            // Check if the click was NOT on the actions column
+                            const target = e.target as HTMLElement;
+                            if (target.closest('[data-actions-cell]')) return;
+                            setExpandedRowId(expandedRowId === row.original.id ? null : row.original.id);
+                        }}
                     >
-                    {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {row.getVisibleCells().map((cell, index) => (
+                        <TableCell 
+                            key={cell.id}
+                            data-actions-cell={cell.column.id === 'actions' ? "true" : undefined}
+                        >
+                            <div className="flex items-center gap-2">
+                                {index === 0 && (
+                                    <ChevronDown className={cn(
+                                        "h-4 w-4 transition-transform text-muted-foreground",
+                                        expandedRowId === row.original.id ? "rotate-0" : "-rotate-90"
+                                    )} />
+                                )}
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </div>
                         </TableCell>
                     ))}
                     </TableRow>
-                    {expandedRowId === row.id && (
-                        <TableRow className="bg-muted/10 hover:bg-muted/10 border-b-2 border-primary/10">
-                            <TableCell colSpan={columns.length} className="p-0">
-                                <div className="p-6 bg-card/50">
+                    {expandedRowId === row.original.id && (
+                        <TableRow className="bg-primary/5 hover:bg-primary/5 border-b-2 border-primary/20">
+                            <TableCell colSpan={row.getVisibleCells().length} className="p-0 border-l-4 border-primary">
+                                <div className="p-6 bg-card/60 backdrop-blur-sm">
                                     <div className="flex flex-col md:flex-row gap-8">
                                         {row.original.imageUrl && (
                                             <div className="shrink-0">

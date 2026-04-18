@@ -1,7 +1,7 @@
 'use client';
 import type { InvoiceSerializable } from '@/types';
 import { format } from 'date-fns';
-import { MoreHorizontal } from 'lucide-react';
+import { Edit2, Trash2, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import {
     DropdownMenu,
@@ -51,25 +51,35 @@ export function InvoiceCard({ invoice, onDelete }: { invoice: InvoiceSerializabl
         <div className="p-4 cursor-pointer">
             <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
+                    <ChevronRight className={cn(
+                        "h-4 w-4 transition-transform text-slate-400",
+                        isExpanded ? "rotate-90" : "rotate-0"
+                    )} />
                     <CategoryBadge category={invoice.category} />
                     <span className="text-xs text-slate-400 font-medium">{format(new Date(invoice.date), 'dd/MM/yyyy')}</span>
                 </div>
-                <div onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-10 w-10 p-0 text-slate-400 hover:text-slate-600 active:bg-slate-100 rounded-full transition-all">
-                                <MoreHorizontal className="h-6 w-6" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                                <Link href={`/invoices/${invoice.id}/edit`}>Sửa</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => onDelete(invoice.id)}>
-                            Xóa
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-10 w-10 text-slate-400 active:bg-slate-100 rounded-full" 
+                        asChild
+                    >
+                        <Link href={`/invoices/${invoice.id}/edit`}>
+                            <Edit2 className="h-5 w-5" />
+                        </Link>
+                    </Button>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-10 w-10 text-slate-400 active:bg-slate-100 rounded-full" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(invoice.id);
+                        }}
+                    >
+                        <Trash2 className="h-5 w-5 text-destructive/70" />
+                    </Button>
                 </div>
             </div>
             <div className="flex justify-between items-end">
