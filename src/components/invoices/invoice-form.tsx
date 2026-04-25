@@ -139,21 +139,27 @@ export function InvoiceForm({ invoiceToEdit, loading: formLoading }: InvoiceForm
   const watchedItems = watch('items');
 
   useEffect(() => {
-    const total = watchedItems.reduce((acc, item) => acc + (item.total || 0), 0);
-    if (total !== getValues('grandTotal')) {
+    const total = watchedItems.reduce((acc, item) => acc + (Number(item.total) || 0), 0);
+    if (total !== Number(getValues('grandTotal'))) {
         setValue('grandTotal', total);
     }
   }, [watchedItems, setValue, getValues]);
 
   const updateItemFields = (index: number, changedField: 'price' | 'total' | 'quantity') => {
       const item = getValues(`items.${index}`);
-      if (!item || isNaN(item.quantity) || item.quantity <= 0) return;
+      if (!item) return;
+      
+      const quantity = Number(item.quantity);
+      const price = Number(item.price);
+      const total = Number(item.total);
+
+      if (isNaN(quantity) || quantity <= 0) return;
 
       if (changedField === 'quantity' || changedField === 'price') {
-          const newTotal = item.quantity * item.price;
+          const newTotal = quantity * price;
           setValue(`items.${index}.total`, newTotal, { shouldValidate: true });
       } else if (changedField === 'total') {
-          const newPrice = item.total / item.quantity;
+          const newPrice = total / quantity;
           setValue(`items.${index}.price`, newPrice, { shouldValidate: true });
       }
       trigger(`items.${index}`);

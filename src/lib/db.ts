@@ -67,6 +67,15 @@ export function toDB(item: any) {
   if ('totalAmount' in newItem) { newItem.total_amount = newItem.totalAmount; delete newItem.totalAmount; }
   if ('reportSnapshot' in newItem) { newItem.report_snapshot = newItem.reportSnapshot; delete newItem.reportSnapshot; }
   if ('isCompleted' in newItem) { newItem.is_completed = newItem.isCompleted; delete newItem.isCompleted; }
+
+  // Stringify JSON fields for Postgres
+  const jsonFields = ['items', 'report_snapshot', 'transactions'];
+  for (const field of jsonFields) {
+    if (field in newItem && newItem[field] !== null && typeof newItem[field] === 'object') {
+      newItem[field] = JSON.stringify(newItem[field]);
+    }
+  }
+
   return newItem;
 }
 
